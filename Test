@@ -1,0 +1,57 @@
+from itertools import permutations
+from sympy import isprime
+
+def reorder_phone_number(vector):
+    # Rule 1: All existing 8s are next to each other
+    vector.sort(key=lambda x: 1 if x == 8 else 0)
+
+    # Rule 2: All 9s are separated from each other by a unique number
+    unique_numbers = [i for i in range(10) if i not in vector]
+    for i, num in enumerate(vector):
+        if num == 9:
+            vector[i] = unique_numbers.pop(0)
+
+    # Rule 3: Two different numbers each appear twice and are separated by at least one 8
+    for num in set(vector):
+        if vector.count(num) == 2:
+            index_1 = vector.index(num)
+            index_2 = vector.index(num, index_1 + 1)
+            vector[index_1], vector[index_2] = 8, vector[index_1]
+
+    # Rule 4: All 3s are surrounded by the same number
+    for i in range(1, len(vector) - 1):
+        if vector[i] == 3:
+            vector[i - 1], vector[i + 1] = vector[i], vector[i]
+
+    # Rule 5: Numbers in positions 5, 6, and 7 are divisible by the same number
+    divisor = vector[5]
+    for i in range(5, 8):
+        vector[i] *= divisor
+
+    # Rule 6: The number in the second last place is divisible by the one in the last place
+    vector[-2] *= vector[-1]
+
+    # Rule 7: The number in the last position is a prime
+    while not isprime(vector[-1]):
+        vector[-1] += 1
+
+    return vector
+
+# Test the function with the given vector
+input_vector = [0, 0, 2, 2, 3, 4, 4, 8, 8, 9, 9]
+result = reorder_phone_number(input_vector)
+
+# Print the result
+print(result)
+
+# Send a message to the Team Leader
+message_to_team_leader = """
+Hello Team Leader,
+
+I have completed the practical test. The reordered vector is: {}
+
+Best regards,
+[Your Name]
+"""
+
+print(message_to_team_leader.format(result))
