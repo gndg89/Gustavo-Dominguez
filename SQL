@@ -1,0 +1,13 @@
+CREATE VIEW InvoiceSummary AS
+SELECT
+    i.id AS InvoiceID,
+    i.amount AS TotalAmount,
+    COALESCE(SUM(CASE WHEN description = 'carnes' THEN amount ELSE 0 END), 0) AS carnes,
+    COALESCE(SUM(CASE WHEN description = 'cereales' THEN amount ELSE 0 END), 0) AS cereales,
+    COALESCE(SUM(CASE WHEN description NOT IN ('carnes', 'cereales') THEN amount ELSE 0 END), 0) AS others
+FROM
+    Invoices i
+JOIN
+    Invoices_items ON i.id = Invoices_items.auto_transfer
+GROUP BY
+    i.id, i.amount;
