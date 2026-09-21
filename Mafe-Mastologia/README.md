@@ -69,7 +69,20 @@ El diferenciador es la **trayectoria y el rigor** frente a los "médicos influen
 - ✅ Consentimiento **por escrito** para cualquier imagen o testimonio de paciente.
 - ✅ Dignidad ante todo: son personas en su momento más vulnerable.
 
-## 8. Próximos pasos (por decidir)
+## 8. Estrategias de valor agregado para atraer pacientes
+
+Más allá del plan de contenido en redes, estas líneas capturan pacientes que **ya están buscando activamente** o que llegan por vías distintas a Instagram/Facebook. Es clave porque muchas pacientes con un hallazgo o diagnóstico buscan primero en Google, no en redes sociales.
+
+1. **Servicio de "Segunda Opinión"** — posicionarlo explícitamente. Es el segmento de mayor intención: pacientes ya diagnosticadas en otro centro que dudan y buscan una voz experta antes de operarse. Encaja perfecto con "los serios, los de 20 años de trayectoria".
+2. **Google Business Profile + SEO local** — optimizar la ficha de Google (reseñas, fotos, horarios, FAQ) y una landing con contenido para búsquedas de alta intención ("cirujano mastólogo + ciudad", "segunda opinión cáncer de mama", "nódulo mamario qué hacer").
+3. **Aprovechar Octubre Rosa** — el mes de sensibilización del cáncer de mama es la ventana de mayor atención mediática del año: campaña especial de contenido, alianzas con farmacias/empresas/gimnasios para charlas, posible jornada de chequeo o tamizaje.
+4. **Red de referidos médicos** — alianzas con ginecólogos, radiólogos, oncólogos y médicos de cabecera; charlas o webinars dirigidos a colegas refuerzan "a quienes otros médicos refieren sus casos difíciles".
+5. **Chatbot de WhatsApp para primer contacto** — responde preguntas frecuentes, explica el proceso y agenda la primera cita sin depender de respuesta manual; reduce fricción en el momento de mayor ansiedad.
+6. **Gestión activa de reputación** — reseñas en Google/Doctoralia y testimonios en video (con consentimiento) como prueba social visible.
+7. **Telemedicina para preconsulta** — consulta virtual inicial para pacientes de otras ciudades o del exterior (relevante para familias venezolanas dispersas gestionando la salud de un ser querido a distancia).
+8. **Newsletter / lista de difusión de WhatsApp** — contenido educativo mensual para mantener "tibia" la relación con quienes descargaron la guía pero aún no agendan, sin depender de pauta paga (más restringida por las políticas de salud de Meta).
+
+## 9. Próximos pasos (por decidir)
 
 - [ ] Definir tono de voz e identidad visual del equipo
 - [ ] Armar calendario de contenido de las primeras 2–4 semanas
@@ -77,7 +90,7 @@ El diferenciador es la **trayectoria y el rigor** frente a los "médicos influen
 - [ ] Configurar CTA/flujo de WhatsApp
 - [ ] (Opcional) Sistema/herramienta para gestionar el calendario y los leads
 
-## 9. Ideas para la parte técnica (Code)
+## 10. Ideas para la parte técnica (Code)
 
 Posibles componentes a construir según avance el proyecto:
 
@@ -97,5 +110,10 @@ Mafe-Mastologia/
 ├── landing/                   # landing + lead magnet
 ├── lead-magnet/               # PDF y assets de la guía
 ├── whatsapp-bot/              # flujo de captación/agenda (FastAPI)
-└── analytics/                 # métricas y dashboard
+├── analytics/                 # métricas y dashboard
+└── propuesta/                 # PDF de presentación del proyecto
 ```
+
+## 11. Propuesta en PDF
+
+Documento de presentación para llevar al equipo médico: [`propuesta/Mafe-Mastologia-Propuesta.pdf`](./propuesta/Mafe-Mastologia-Propuesta.pdf).
