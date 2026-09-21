@@ -117,3 +117,24 @@ Mafe-Mastologia/
 ## 11. Propuesta en PDF
 
 Documento de presentación para llevar al equipo médico: [`propuesta/Mafe-Mastologia-Propuesta.pdf`](./propuesta/Mafe-Mastologia-Propuesta.pdf).
+
+## 12. Inversión y paquetes de servicio (referencia de precios, Venezuela 2026)
+
+Precios de referencia en **USD**, moneda en la que se cotiza el trabajo freelance/digital en Venezuela por la inestabilidad del bolívar. Ajustar según el alcance final que se acuerde.
+
+| Componente | Rango (USD) | Frecuencia |
+|---|---|---|
+| Diagnóstico + estrategia inicial | $150 – $350 | Pago único |
+| Gestión de contenido (redes) | $250 – $600 | Mensual |
+| Lead magnet + landing de captura | $150 – $400 | Pago único |
+| Chatbot / flujo de WhatsApp | $300 – $900 | Pago único |
+| Community management | $100 – $250 | Mensual |
+| Gestión de pauta paga (Meta/Google) | 10–20% del presupuesto, o $150–$300 fijo | Mensual |
+| Dashboard de métricas y leads | $150 – $400 | Pago único |
+
+**Paquetes sugeridos:**
+- **Paquete Inicial (mes 1):** estrategia + lead magnet + landing + calendario alineado a Octubre Rosa → **$500 – $900** (pago único).
+- **Retainer mensual (mes 2 en adelante):** contenido + community management + reporte de métricas → **$350 – $700/mes**.
+- **Add-ons:** chatbot de WhatsApp y pauta paga, cotizados aparte según el alcance que se active.
+
+Cobrar por paquete de valor, no por hora: en salud, el cliente entiende mejor "esto trae pacientes potenciales" que una tarifa horaria.
