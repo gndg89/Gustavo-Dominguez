@@ -1,10 +1,10 @@
-# Mafe Mastología — Proyecto de Mercadeo Digital
+# Dra. María Fernanda Adjounian — Proyecto de Mercadeo Digital
 
 ## 1. Resumen del proyecto
 
 Estrategia de contenido y presencia en redes sociales para un equipo de cirujanos mastólogos ("de la vieja escuela") con reputación consolidada. El objetivo no es "vender cirugías", sino **construir confianza y autoridad médica** para captar pacientes que enfrentan un diagnóstico (nódulos, cáncer de mama, etc.) y buscan seguridad, experiencia y trato humano.
 
-- **Cliente:** cirujana mastóloga + su equipo de cirujanos.
+- **Cliente:** Dra. María Fernanda Adjounian, cirujana mastóloga, + su equipo de cirujanos.
 - **Responsable de mercadeo:** Gustavo.
 - **Estado:** definición inicial de estrategia.
 
