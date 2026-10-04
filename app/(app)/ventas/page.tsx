@@ -6,6 +6,8 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Table, Thead, Tbody, Tr, Th, Td, EmptyState } from "@/components/ui/Table";
+import { DeleteButton } from "@/components/ui/DeleteButton";
+import { deleteSale } from "@/actions/sales";
 
 export default async function VentasPage() {
   const sales = await prisma.sale.findMany({
@@ -38,6 +40,7 @@ export default async function VentasPage() {
               <Th>Total</Th>
               <Th>Forma de pago</Th>
               <Th>Registrada por</Th>
+              <Th></Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -58,6 +61,17 @@ export default async function VentasPage() {
                   <Td>{formatMoney(sale.totalAmount, sale.currency)}</Td>
                   <Td>{paymentMethodLabel(sale.paymentMethod)}</Td>
                   <Td>{sale.user?.name ?? "—"}</Td>
+                  <Td>
+                    <div className="flex items-center gap-2">
+                      <Link href={`/ventas/${sale.id}/editar`}>
+                        <Button variant="secondary">Editar</Button>
+                      </Link>
+                      <DeleteButton
+                        action={deleteSale.bind(null, sale.id)}
+                        confirmMessage="¿Borrar esta venta? El stock de los insumos usados se repone."
+                      />
+                    </div>
+                  </Td>
                 </Tr>
               );
             })}

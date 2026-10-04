@@ -55,23 +55,24 @@ model Supplier {
 }
 
 model Ingredient {
-  id                 String       @id @default(cuid())
-  name               String       @unique
+  id                 String            @id @default(cuid())
+  name               String            @unique
   unit               Unit
-  currentCostPerUnit Float        @default(0)
-  stockQuantity      Float        @default(0)
-  minStockThreshold  Float        @default(0)
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
+  currentCostPerUnit Float             @default(0)
+  stockQuantity      Float             @default(0)
+  minStockThreshold  Float             @default(0)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
   purchases          Purchase[]
   recipeItems        RecipeItem[]
+  saleConsumptions   SaleConsumption[]
 }
 
 model Purchase {
   id           String     @id @default(cuid())
   ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
   ingredientId String
-  supplier     Supplier?  @relation(fields: [supplierId], references: [id])
+  supplier     Supplier?  @relation(fields: [supplierId], references: [id], onDelete: SetNull)
   supplierId   String?
   quantity      Float
   totalCost     Float
@@ -111,19 +112,32 @@ model RecipeItem {
 }
 
 model Sale {
-  id            String        @id @default(cuid())
-  dish          Dish          @relation(fields: [dishId], references: [id])
+  id            String            @id @default(cuid())
+  dish          Dish              @relation(fields: [dishId], references: [id])
   dishId        String
-  user          User?         @relation(fields: [userId], references: [id])
+  user          User?             @relation(fields: [userId], references: [id])
   userId        String?
-  quantity      Int           @default(1)
+  quantity      Int               @default(1)
   unitPrice     Float
   unitCost      Float
   totalAmount   Float
-  currency      Currency      @default(BS)
-  paymentMethod PaymentMethod @default(EFECTIVO)
-  saleDate      DateTime      @default(now())
-  createdAt     DateTime      @default(now())
+  currency      Currency          @default(BS)
+  paymentMethod PaymentMethod     @default(EFECTIVO)
+  saleDate      DateTime          @default(now())
+  createdAt     DateTime          @default(now())
+  consumptions  SaleConsumption[]
 
   @@index([dishId])
+}
+
+model SaleConsumption {
+  id           String     @id @default(cuid())
+  sale         Sale       @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  saleId       String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  ingredientId String
+  quantity     Float
+
+  @@index([saleId])
+  @@index([ingredientId])
 }

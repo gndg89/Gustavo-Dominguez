@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import {
@@ -7,10 +8,12 @@ import {
   paymentMethodLabel,
   unitLabel,
 } from "@/lib/utils";
-import { updateIngredient } from "@/actions/ingredients";
-import { createPurchase } from "@/actions/purchases";
+import { updateIngredient, deleteIngredient } from "@/actions/ingredients";
+import { createPurchase, deletePurchase } from "@/actions/purchases";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { DeleteButton } from "@/components/ui/DeleteButton";
 import { Table, Thead, Tbody, Tr, Th, Td, EmptyState } from "@/components/ui/Table";
 import { IngredientForm } from "@/components/insumos/IngredientForm";
 import { PurchaseForm } from "@/components/compras/PurchaseForm";
@@ -46,6 +49,12 @@ export default async function IngredientDetailPage({
       <PageHeader
         title={ingredient.name}
         description={`Costo actual: ${formatMoney(ingredient.currentCostPerUnit, lastPurchase?.currency ?? "BS")} / ${unitLabel(ingredient.unit)} · Stock: ${formatQuantity(ingredient.stockQuantity, ingredient.unit)}`}
+        action={
+          <DeleteButton
+            action={deleteIngredient.bind(null, ingredient.id)}
+            confirmMessage={`¿Borrar el insumo "${ingredient.name}"? Esto también borra su historial de compras.`}
+          />
+        }
       />
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -90,6 +99,7 @@ export default async function IngredientDetailPage({
               <Th>Moneda</Th>
               <Th>Forma de pago</Th>
               <Th>Proveedor</Th>
+              <Th></Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -102,6 +112,17 @@ export default async function IngredientDetailPage({
                 <Td>{purchase.currency === "BS" ? "Bolívares" : "Divisas"}</Td>
                 <Td>{paymentMethodLabel(purchase.paymentMethod)}</Td>
                 <Td>{purchase.supplier?.name ?? "—"}</Td>
+                <Td>
+                  <div className="flex items-center gap-2">
+                    <Link href={`/insumos/${ingredient.id}/compras/${purchase.id}/editar`}>
+                      <Button variant="secondary">Editar</Button>
+                    </Link>
+                    <DeleteButton
+                      action={deletePurchase.bind(null, purchase.id)}
+                      confirmMessage="¿Borrar esta compra? El stock y el costo actual se recalculan."
+                    />
+                  </div>
+                </Td>
               </Tr>
             ))}
           </Tbody>

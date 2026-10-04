@@ -129,3 +129,24 @@ export async function updateDish(
   revalidatePath("/dashboard");
   redirect(`/recetas/${id}`);
 }
+
+export async function deleteDish(
+  id: string,
+  _prevState: ActionState,
+  _formData: FormData,
+): Promise<ActionState> {
+  await requireSession();
+
+  const salesCount = await prisma.sale.count({ where: { dishId: id } });
+  if (salesCount > 0) {
+    return {
+      error: "Esta receta ya tiene ventas registradas. Márcala como inactiva en vez de borrarla.",
+    };
+  }
+
+  await prisma.dish.delete({ where: { id } });
+
+  revalidatePath("/recetas");
+  revalidatePath("/dashboard");
+  redirect("/recetas");
+}

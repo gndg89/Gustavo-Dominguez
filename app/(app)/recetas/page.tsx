@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Table, Thead, Tbody, Tr, Th, Td, EmptyState } from "@/components/ui/Table";
+import { DeleteButton } from "@/components/ui/DeleteButton";
+import { deleteDish } from "@/actions/dishes";
 
 export default async function RecetasPage() {
   const dishes = await prisma.dish.findMany({
@@ -34,6 +36,7 @@ export default async function RecetasPage() {
               <Th>Precio de venta</Th>
               <Th>Margen</Th>
               <Th>Estado</Th>
+              <Th></Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -67,6 +70,12 @@ export default async function RecetasPage() {
                     ) : (
                       <Badge tone="neutral">Inactiva</Badge>
                     )}
+                  </Td>
+                  <Td>
+                    <DeleteButton
+                      action={deleteDish.bind(null, dish.id)}
+                      confirmMessage={`¿Borrar la receta "${dish.name}"?`}
+                    />
                   </Td>
                 </Tr>
               );

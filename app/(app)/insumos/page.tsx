@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Table, Thead, Tbody, Tr, Th, Td, EmptyState } from "@/components/ui/Table";
+import { DeleteButton } from "@/components/ui/DeleteButton";
+import { deleteIngredient } from "@/actions/ingredients";
 
 export default async function InsumosPage() {
   const ingredients = await prisma.ingredient.findMany({
@@ -39,6 +41,7 @@ export default async function InsumosPage() {
               <Th>Costo actual</Th>
               <Th>Stock</Th>
               <Th>Estado</Th>
+              <Th></Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -77,6 +80,12 @@ export default async function InsumosPage() {
                     ) : (
                       <Badge tone="success">OK</Badge>
                     )}
+                  </Td>
+                  <Td>
+                    <DeleteButton
+                      action={deleteIngredient.bind(null, ingredient.id)}
+                      confirmMessage={`¿Borrar el insumo "${ingredient.name}"? Esto también borra su historial de compras.`}
+                    />
                   </Td>
                 </Tr>
               );

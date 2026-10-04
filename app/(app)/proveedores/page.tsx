@@ -5,6 +5,8 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Table, Thead, Tbody, Tr, Th, Td, EmptyState } from "@/components/ui/Table";
 import { SupplierForm } from "@/components/proveedores/SupplierForm";
+import { DeleteButton } from "@/components/ui/DeleteButton";
+import { deleteSupplier } from "@/actions/suppliers";
 
 export default async function ProveedoresPage() {
   const suppliers = await prisma.supplier.findMany({ orderBy: { name: "asc" } });
@@ -20,6 +22,7 @@ export default async function ProveedoresPage() {
                 <Th>Nombre</Th>
                 <Th>Teléfono</Th>
                 <Th>Email</Th>
+                <Th></Th>
               </Tr>
             </Thead>
             <Tbody>
@@ -35,6 +38,12 @@ export default async function ProveedoresPage() {
                   </Td>
                   <Td>{supplier.phone ?? "—"}</Td>
                   <Td>{supplier.email ?? "—"}</Td>
+                  <Td>
+                    <DeleteButton
+                      action={deleteSupplier.bind(null, supplier.id)}
+                      confirmMessage={`¿Borrar el proveedor "${supplier.name}"?`}
+                    />
+                  </Td>
                 </Tr>
               ))}
             </Tbody>

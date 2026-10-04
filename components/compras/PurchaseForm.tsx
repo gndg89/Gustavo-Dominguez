@@ -24,15 +24,31 @@ export function PurchaseForm({
   action,
   ingredientUnit,
   suppliers,
+  defaultValues,
+  submitLabel = "Registrar compra",
 }: {
   action: (state: ActionState, formData: FormData) => Promise<ActionState>;
   ingredientUnit: string;
   suppliers: Supplier[];
+  defaultValues?: {
+    quantity: number;
+    totalCost: number;
+    currency: string;
+    paymentMethod: string;
+    supplierId: string | null;
+    purchaseDate: Date;
+    notes: string | null;
+  };
+  submitLabel?: string;
 }) {
   const [state, formAction, isPending] = useActionState(action, undefined);
-  const [quantity, setQuantity] = useState("");
-  const [totalCost, setTotalCost] = useState("");
-  const [currency, setCurrency] = useState("BS");
+  const [quantity, setQuantity] = useState(
+    defaultValues ? String(defaultValues.quantity) : "",
+  );
+  const [totalCost, setTotalCost] = useState(
+    defaultValues ? String(defaultValues.totalCost) : "",
+  );
+  const [currency, setCurrency] = useState(defaultValues?.currency ?? "BS");
 
   const pricePerUnit = useMemo(() => {
     const q = parseFloat(quantity);
@@ -42,6 +58,9 @@ export function PurchaseForm({
   }, [quantity, totalCost]);
 
   const today = new Date().toISOString().slice(0, 10);
+  const purchaseDateValue = defaultValues
+    ? defaultValues.purchaseDate.toISOString().slice(0, 10)
+    : today;
 
   return (
     <form action={formAction} className="space-y-4">
@@ -97,7 +116,11 @@ export function PurchaseForm({
         </div>
         <div>
           <Label htmlFor="paymentMethod">Forma de pago</Label>
-          <Select id="paymentMethod" name="paymentMethod" defaultValue="EFECTIVO">
+          <Select
+            id="paymentMethod"
+            name="paymentMethod"
+            defaultValue={defaultValues?.paymentMethod ?? "EFECTIVO"}
+          >
             {PAYMENT_METHOD_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
@@ -109,7 +132,7 @@ export function PurchaseForm({
 
       <div>
         <Label htmlFor="supplierId">Proveedor (opcional)</Label>
-        <Select id="supplierId" name="supplierId" defaultValue="">
+        <Select id="supplierId" name="supplierId" defaultValue={defaultValues?.supplierId ?? ""}>
           <option value="">Sin proveedor</option>
           {suppliers.map((s) => (
             <option key={s.id} value={s.id}>
@@ -121,16 +144,27 @@ export function PurchaseForm({
 
       <div>
         <Label htmlFor="purchaseDate">Fecha de compra</Label>
-        <Input id="purchaseDate" name="purchaseDate" type="date" defaultValue={today} required />
+        <Input
+          id="purchaseDate"
+          name="purchaseDate"
+          type="date"
+          defaultValue={purchaseDateValue}
+          required
+        />
       </div>
 
       <div>
         <Label htmlFor="notes">Notas (opcional)</Label>
-        <Input id="notes" name="notes" placeholder="Ej. compra de temporada" />
+        <Input
+          id="notes"
+          name="notes"
+          placeholder="Ej. compra de temporada"
+          defaultValue={defaultValues?.notes ?? ""}
+        />
       </div>
 
       <Button type="submit" disabled={isPending}>
-        {isPending ? "Guardando..." : "Registrar compra"}
+        {isPending ? "Guardando..." : submitLabel}
       </Button>
     </form>
   );

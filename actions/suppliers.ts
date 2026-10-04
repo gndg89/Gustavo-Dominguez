@@ -32,6 +32,19 @@ export async function createSupplier(
   redirect("/proveedores");
 }
 
+export async function deleteSupplier(
+  id: string,
+  _prevState: ActionState,
+  _formData: FormData,
+): Promise<ActionState> {
+  await requireSession();
+
+  await prisma.supplier.delete({ where: { id } });
+
+  revalidatePath("/proveedores");
+  redirect("/proveedores");
+}
+
 export async function updateSupplier(
   id: string,
   _prevState: ActionState,

@@ -25,6 +25,15 @@ export const ingredientSchema = z.object({
   minStockThreshold: z.coerce.number().min(0).default(0),
 });
 
+export const initialPurchaseSchema = z.object({
+  initialQuantity: z.coerce.number().positive("La cantidad debe ser mayor a 0"),
+  initialTotalCost: z.coerce.number().positive("El costo debe ser mayor a 0"),
+  initialCurrency: currencyEnum,
+  initialPaymentMethod: paymentMethodEnum,
+  initialSupplierId: z.string().optional().nullable(),
+  initialPurchaseDate: z.coerce.date(),
+});
+
 export const purchaseSchema = z.object({
   supplierId: z.string().optional().nullable(),
   quantity: z.coerce.number().positive("La cantidad debe ser mayor a 0"),
