@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite" // cambiar a "postgresql" al desplegar; el resto del schema no cambia
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+enum Unit {
+  GRAM
+  KILOGRAM
+  MILLILITER
+  LITER
+  UNIT
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(STAFF)
+  createdAt    DateTime @default(now())
+  sales        Sale[]
+}
+
+model Supplier {
+  id        String     @id @default(cuid())
+  name      String
+  phone     String?
+  email     String?
+  notes     String?
+  createdAt DateTime   @default(now())
+  purchases Purchase[]
+}
+
+model Ingredient {
+  id                 String       @id @default(cuid())
+  name               String       @unique
+  unit               Unit
+  currentCostPerUnit Float        @default(0)
+  stockQuantity      Float        @default(0)
+  minStockThreshold  Float        @default(0)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  purchases          Purchase[]
+  recipeItems        RecipeItem[]
+}
+
+model Purchase {
+  id           String     @id @default(cuid())
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  ingredientId String
+  supplier     Supplier?  @relation(fields: [supplierId], references: [id])
+  supplierId   String?
+  quantity     Float
+  totalCost    Float
+  pricePerUnit Float
+  purchaseDate DateTime   @default(now())
+  notes        String?
+  createdAt    DateTime   @default(now())
+
+  @@index([ingredientId])
+  @@index([supplierId])
+}
+
+model Dish {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  salePrice   Float?
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  recipeItems RecipeItem[]
+  sales       Sale[]
+}
+
+model RecipeItem {
+  id           String     @id @default(cuid())
+  dish         Dish       @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  dishId       String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  ingredientId String
+  quantity     Float
+
+  @@unique([dishId, ingredientId])
+}
+
+model Sale {
+  id          String   @id @default(cuid())
+  dish        Dish     @relation(fields: [dishId], references: [id])
+  dishId      String
+  user        User?    @relation(fields: [userId], references: [id])
+  userId      String?
+  quantity    Int      @default(1)
+  unitPrice   Float
+  unitCost    Float
+  totalAmount Float
+  saleDate    DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([dishId])
+}
