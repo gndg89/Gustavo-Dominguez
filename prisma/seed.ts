@@ -71,6 +71,8 @@ async function main() {
         quantity: data.quantity,
         totalCost: data.totalCost,
         pricePerUnit: data.totalCost / data.quantity,
+        currency: "BS",
+        paymentMethod: "TRANSFERENCIA",
       },
     });
   }
@@ -86,9 +88,9 @@ async function main() {
       isActive: true,
       recipeItems: {
         create: [
-          { ingredientId: ingredients["seed-ing-tomate"].id, quantity: 0.2 },
-          { ingredientId: ingredients["seed-ing-pimenton"].id, quantity: 0.15 },
-          { ingredientId: ingredients["seed-ing-queso"].id, quantity: 0.1 },
+          { ingredientId: ingredients["seed-ing-tomate"].id, quantity: 200, unit: "GRAM" },
+          { ingredientId: ingredients["seed-ing-pimenton"].id, quantity: 150, unit: "GRAM" },
+          { ingredientId: ingredients["seed-ing-queso"].id, quantity: 0.1, unit: "KILOGRAM" },
         ],
       },
     },
@@ -105,6 +107,8 @@ async function main() {
       unitPrice: 18000,
       unitCost: 0.2 * 8000 + 0.15 * 9000 + 0.1 * 30000,
       totalAmount: 36000,
+      currency: "BS",
+      paymentMethod: "EFECTIVO",
     },
   });
 

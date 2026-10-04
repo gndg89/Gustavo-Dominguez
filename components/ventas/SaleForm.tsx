@@ -6,10 +6,19 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { FormMessage } from "@/components/ui/FormMessage";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatMoney } from "@/lib/utils";
 import type { ActionState } from "@/lib/action-state";
 
 type Dish = { id: string; name: string; salePrice: number | null };
+
+const PAYMENT_METHOD_OPTIONS = [
+  { value: "EFECTIVO", label: "Efectivo" },
+  { value: "PAGO_MOVIL", label: "Pago móvil" },
+  { value: "TRANSFERENCIA", label: "Transferencia" },
+  { value: "ZELLE", label: "Zelle" },
+  { value: "TARJETA", label: "Tarjeta" },
+  { value: "OTRO", label: "Otro" },
+];
 
 export function SaleForm({
   action,
@@ -22,6 +31,7 @@ export function SaleForm({
   const [state, formAction, isPending] = useActionState(action, undefined);
   const [dishId, setDishId] = useState(sellableDishes[0]?.id ?? "");
   const [quantity, setQuantity] = useState("1");
+  const [currency, setCurrency] = useState("BS");
 
   const selectedDish = sellableDishes.find((d) => d.id === dishId);
   const total = useMemo(() => {
@@ -82,9 +92,35 @@ export function SaleForm({
         </div>
       </div>
 
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="currency">Moneda recibida</Label>
+          <Select
+            id="currency"
+            name="currency"
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+          >
+            <option value="BS">Bolívares (Bs)</option>
+            <option value="USD">Divisas ($)</option>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="paymentMethod">Forma de pago</Label>
+          <Select id="paymentMethod" name="paymentMethod" defaultValue="EFECTIVO">
+            {PAYMENT_METHOD_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </Select>
+        </div>
+      </div>
+
       {total != null && (
         <p className="text-sm text-muted">
-          Total de la venta: <span className="font-medium text-foreground">{formatCurrency(total)}</span>
+          Total de la venta:{" "}
+          <span className="font-medium text-foreground">{formatMoney(total, currency)}</span>
         </p>
       )}
 

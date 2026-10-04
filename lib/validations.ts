@@ -8,6 +8,17 @@ export const unitEnum = z.enum([
   "UNIT",
 ]);
 
+export const currencyEnum = z.enum(["BS", "USD"]);
+
+export const paymentMethodEnum = z.enum([
+  "EFECTIVO",
+  "PAGO_MOVIL",
+  "TRANSFERENCIA",
+  "ZELLE",
+  "TARJETA",
+  "OTRO",
+]);
+
 export const ingredientSchema = z.object({
   name: z.string().trim().min(2, "El nombre es muy corto"),
   unit: unitEnum,
@@ -15,10 +26,11 @@ export const ingredientSchema = z.object({
 });
 
 export const purchaseSchema = z.object({
-  ingredientId: z.string().min(1, "Selecciona un insumo"),
   supplierId: z.string().optional().nullable(),
   quantity: z.coerce.number().positive("La cantidad debe ser mayor a 0"),
   totalCost: z.coerce.number().positive("El costo debe ser mayor a 0"),
+  currency: currencyEnum,
+  paymentMethod: paymentMethodEnum,
   purchaseDate: z.coerce.date(),
   notes: z.string().trim().optional(),
 });
@@ -33,6 +45,7 @@ export const supplierSchema = z.object({
 export const recipeItemInputSchema = z.object({
   ingredientId: z.string().min(1),
   quantity: z.coerce.number().positive(),
+  unit: unitEnum,
 });
 
 export const dishSchema = z.object({
@@ -48,6 +61,8 @@ export const dishSchema = z.object({
 export const saleSchema = z.object({
   dishId: z.string().min(1, "Selecciona un plato"),
   quantity: z.coerce.number().int().positive().default(1),
+  currency: currencyEnum,
+  paymentMethod: paymentMethodEnum,
   saleDate: z.coerce.date(),
 });
 

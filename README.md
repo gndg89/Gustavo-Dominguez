@@ -4,13 +4,15 @@ Panel administrativo para un emprendimiento de restaurante / *dark kitchen*: con
 
 ## Funcionalidad
 
-- **Insumos**: registra cada materia prima con su unidad de medida (kg, g, L, ml, unidad). Cada compra actualiza el costo de referencia (último precio de compra) y suma al stock.
-- **Compras**: historial de compras por insumo, con proveedor opcional.
-- **Recetas**: arma un plato agregando insumos y cantidades; el costo total del plato se calcula automáticamente y se ve en vivo mientras editas.
-- **Ventas**: registra ventas de un plato; el precio y el costo quedan "congelados" en el momento de la venta, y se descuenta el stock de los insumos usados.
+- **Insumos**: registra cada materia prima con su unidad de medida (kg, g, L, ml, unidad). Desde la misma página de cada insumo se registra una compra nueva (cantidad, costo, moneda y forma de pago) y se ve el historial completo — cada compra actualiza el costo de referencia (último precio de compra) y suma al stock.
+- **Recetas**: arma un plato agregando insumos y cantidades — cada línea puede escribirse en g o kg (o ml/L) sin importar en qué unidad esté registrado el insumo, con conversión automática; el costo total del plato se calcula en vivo mientras editas.
+- **Ventas**: registra ventas de un plato con la moneda y forma de pago recibida; el precio y el costo quedan "congelados" en el momento de la venta, y se descuenta el stock de los insumos usados (con la misma conversión de unidades).
 - **Proveedores**: alta y edición simple.
+- **Contabilidad**: ingresos y gastos del período (por defecto, el mes actual) separados por moneda (Bs / Divisas), desglose por forma de pago, y un libro de movimientos con todas las compras y ventas.
 - **Dashboard**: gasto en insumos del mes, ventas del mes, recetas activas, insumos con stock bajo, y los platos más rentables.
 - **Usuarios**: login multiusuario (ADMIN / STAFF). Solo un ADMIN puede crear usuarios nuevos.
+
+Moneda y forma de pago: cada compra y venta se registra en **Bs** o **Divisas (USD)**, junto con el método (efectivo, pago móvil, transferencia, Zelle, tarjeta u otro). El sistema no convierte entre monedas — cada reporte muestra los totales de Bs y de Divisas por separado.
 
 ## Stack técnico
 

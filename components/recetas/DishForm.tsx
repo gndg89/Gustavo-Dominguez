@@ -23,7 +23,7 @@ export function DishForm({
     description: string | null;
     salePrice: number | null;
     isActive: boolean;
-    items: { ingredientId: string; quantity: number }[];
+    items: { ingredientId: string; quantity: number; unit: string }[];
   };
   submitLabel?: string;
 }) {

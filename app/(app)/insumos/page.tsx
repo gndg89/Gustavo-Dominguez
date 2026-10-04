@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { formatCurrency, formatQuantity, unitLabel } from "@/lib/utils";
+import { formatMoney, formatQuantity, unitLabel } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -10,13 +10,19 @@ import { Table, Thead, Tbody, Tr, Th, Td, EmptyState } from "@/components/ui/Tab
 export default async function InsumosPage() {
   const ingredients = await prisma.ingredient.findMany({
     orderBy: { name: "asc" },
+    include: {
+      purchases: {
+        orderBy: { purchaseDate: "desc" },
+        take: 1,
+      },
+    },
   });
 
   return (
     <div>
       <PageHeader
         title="Insumos"
-        description="Materia prima y su costo de referencia por unidad."
+        description="Materia prima, su última compra y el costo de referencia por unidad."
         action={
           <Link href="/insumos/nuevo">
             <Button>Nuevo insumo</Button>
@@ -29,6 +35,7 @@ export default async function InsumosPage() {
             <Tr>
               <Th>Nombre</Th>
               <Th>Unidad</Th>
+              <Th>Última compra</Th>
               <Th>Costo actual</Th>
               <Th>Stock</Th>
               <Th>Estado</Th>
@@ -37,6 +44,7 @@ export default async function InsumosPage() {
           <Tbody>
             {ingredients.map((ingredient) => {
               const low = ingredient.stockQuantity < ingredient.minStockThreshold;
+              const lastPurchase = ingredient.purchases[0];
               return (
                 <Tr key={ingredient.id}>
                   <Td>
@@ -49,8 +57,18 @@ export default async function InsumosPage() {
                   </Td>
                   <Td>{unitLabel(ingredient.unit)}</Td>
                   <Td>
-                    {formatCurrency(ingredient.currentCostPerUnit)} /{" "}
-                    {unitLabel(ingredient.unit)}
+                    {lastPurchase ? (
+                      <span>
+                        {formatQuantity(lastPurchase.quantity, ingredient.unit)} ·{" "}
+                        {formatMoney(lastPurchase.totalCost, lastPurchase.currency)}
+                      </span>
+                    ) : (
+                      "—"
+                    )}
+                  </Td>
+                  <Td>
+                    {formatMoney(ingredient.currentCostPerUnit, lastPurchase?.currency ?? "BS")}{" "}
+                    / {unitLabel(ingredient.unit)}
                   </Td>
                   <Td>{formatQuantity(ingredient.stockQuantity, ingredient.unit)}</Td>
                   <Td>

@@ -6,27 +6,33 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { FormMessage } from "@/components/ui/FormMessage";
-import { formatCurrency, unitLabel } from "@/lib/utils";
+import { formatMoney, unitLabel } from "@/lib/utils";
 import type { ActionState } from "@/lib/action-state";
 
-type Ingredient = { id: string; name: string; unit: string };
 type Supplier = { id: string; name: string };
+
+const PAYMENT_METHOD_OPTIONS = [
+  { value: "EFECTIVO", label: "Efectivo" },
+  { value: "PAGO_MOVIL", label: "Pago móvil" },
+  { value: "TRANSFERENCIA", label: "Transferencia" },
+  { value: "ZELLE", label: "Zelle" },
+  { value: "TARJETA", label: "Tarjeta" },
+  { value: "OTRO", label: "Otro" },
+];
 
 export function PurchaseForm({
   action,
-  ingredients,
+  ingredientUnit,
   suppliers,
 }: {
   action: (state: ActionState, formData: FormData) => Promise<ActionState>;
-  ingredients: Ingredient[];
+  ingredientUnit: string;
   suppliers: Supplier[];
 }) {
   const [state, formAction, isPending] = useActionState(action, undefined);
-  const [ingredientId, setIngredientId] = useState(ingredients[0]?.id ?? "");
   const [quantity, setQuantity] = useState("");
   const [totalCost, setTotalCost] = useState("");
-
-  const selectedIngredient = ingredients.find((i) => i.id === ingredientId);
+  const [currency, setCurrency] = useState("BS");
 
   const pricePerUnit = useMemo(() => {
     const q = parseFloat(quantity);
@@ -41,28 +47,9 @@ export function PurchaseForm({
     <form action={formAction} className="space-y-4">
       <FormMessage error={state?.error} />
 
-      <div>
-        <Label htmlFor="ingredientId">Insumo</Label>
-        <Select
-          id="ingredientId"
-          name="ingredientId"
-          value={ingredientId}
-          onChange={(e) => setIngredientId(e.target.value)}
-          required
-        >
-          {ingredients.map((ing) => (
-            <option key={ing.id} value={ing.id}>
-              {ing.name} ({unitLabel(ing.unit)})
-            </option>
-          ))}
-        </Select>
-      </div>
-
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="quantity">
-            Cantidad comprada {selectedIngredient ? `(${unitLabel(selectedIngredient.unit)})` : ""}
-          </Label>
+          <Label htmlFor="quantity">Cantidad comprada ({unitLabel(ingredientUnit)})</Label>
           <Input
             id="quantity"
             name="quantity"
@@ -89,11 +76,36 @@ export function PurchaseForm({
         </div>
       </div>
 
-      {pricePerUnit != null && selectedIngredient && (
+      {pricePerUnit != null && (
         <p className="text-sm text-muted">
-          ≈ {formatCurrency(pricePerUnit)} por {unitLabel(selectedIngredient.unit)}
+          ≈ {formatMoney(pricePerUnit, currency)} por {unitLabel(ingredientUnit)}
         </p>
       )}
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="currency">Moneda</Label>
+          <Select
+            id="currency"
+            name="currency"
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+          >
+            <option value="BS">Bolívares (Bs)</option>
+            <option value="USD">Divisas ($)</option>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="paymentMethod">Forma de pago</Label>
+          <Select id="paymentMethod" name="paymentMethod" defaultValue="EFECTIVO">
+            {PAYMENT_METHOD_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </Select>
+        </div>
+      </div>
 
       <div>
         <Label htmlFor="supplierId">Proveedor (opcional)</Label>
@@ -117,7 +129,7 @@ export function PurchaseForm({
         <Input id="notes" name="notes" placeholder="Ej. compra de temporada" />
       </div>
 
-      <Button type="submit" disabled={isPending || ingredients.length === 0}>
+      <Button type="submit" disabled={isPending}>
         {isPending ? "Guardando..." : "Registrar compra"}
       </Button>
     </form>

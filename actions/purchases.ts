@@ -10,6 +10,7 @@ import type { ActionState } from "@/lib/action-state";
 import { requireSession } from "@/lib/require-session";
 
 export async function createPurchase(
+  ingredientId: string,
   _prevState: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
@@ -21,7 +22,7 @@ export async function createPurchase(
     return { error: parsed.error.issues[0]?.message ?? "Datos inválidos" };
   }
 
-  const { ingredientId, supplierId, quantity, totalCost, purchaseDate, notes } =
+  const { supplierId, quantity, totalCost, currency, paymentMethod, purchaseDate, notes } =
     parsed.data;
 
   const ingredient = await prisma.ingredient.findUnique({
@@ -41,6 +42,8 @@ export async function createPurchase(
         quantity,
         totalCost,
         pricePerUnit,
+        currency,
+        paymentMethod,
         purchaseDate,
         notes: notes || null,
       },
@@ -54,9 +57,9 @@ export async function createPurchase(
     }),
   ]);
 
-  revalidatePath("/compras");
   revalidatePath("/insumos");
   revalidatePath(`/insumos/${ingredientId}`);
+  revalidatePath("/contabilidad");
   revalidatePath("/dashboard");
-  redirect("/compras");
+  redirect(`/insumos/${ingredientId}`);
 }

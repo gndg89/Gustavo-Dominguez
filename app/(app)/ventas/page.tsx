@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { calculateMargin } from "@/lib/costing";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatDate, formatMoney, paymentMethodLabel } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -36,6 +36,7 @@ export default async function VentasPage() {
               <Th>Costo unit.</Th>
               <Th>Margen</Th>
               <Th>Total</Th>
+              <Th>Forma de pago</Th>
               <Th>Registrada por</Th>
             </Tr>
           </Thead>
@@ -47,14 +48,15 @@ export default async function VentasPage() {
                   <Td>{formatDate(sale.saleDate)}</Td>
                   <Td className="font-medium text-foreground">{sale.dish.name}</Td>
                   <Td>{sale.quantity}</Td>
-                  <Td>{formatCurrency(sale.unitPrice)}</Td>
-                  <Td>{formatCurrency(sale.unitCost)}</Td>
+                  <Td>{formatMoney(sale.unitPrice, sale.currency)}</Td>
+                  <Td>{formatMoney(sale.unitCost, sale.currency)}</Td>
                   <Td>
                     <span className={margin != null && margin >= 0 ? "text-accent" : "text-danger"}>
-                      {formatCurrency(margin)}
+                      {formatMoney(margin, sale.currency)}
                     </span>
                   </Td>
-                  <Td>{formatCurrency(sale.totalAmount)}</Td>
+                  <Td>{formatMoney(sale.totalAmount, sale.currency)}</Td>
+                  <Td>{paymentMethodLabel(sale.paymentMethod)}</Td>
                   <Td>{sale.user?.name ?? "—"}</Td>
                 </Tr>
               );

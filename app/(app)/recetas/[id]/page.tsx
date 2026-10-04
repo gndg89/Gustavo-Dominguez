@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { calculateDishCost, calculateMargin } from "@/lib/costing";
+import { calculateMargin, calculateRecipeCost } from "@/lib/costing";
 import { formatCurrency } from "@/lib/utils";
 import { updateDish } from "@/actions/dishes";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -27,12 +27,7 @@ export default async function DishDetailPage({
 
   if (!dish) notFound();
 
-  const cost = calculateDishCost(
-    dish.recipeItems.map((item) => ({
-      quantity: item.quantity,
-      costPerUnit: item.ingredient.currentCostPerUnit,
-    })),
-  );
+  const cost = calculateRecipeCost(dish.recipeItems);
   const margin = calculateMargin(dish.salePrice, cost);
 
   const updateAction = updateDish.bind(null, dish.id);
@@ -60,6 +55,7 @@ export default async function DishDetailPage({
             items: dish.recipeItems.map((item) => ({
               ingredientId: item.ingredientId,
               quantity: item.quantity,
+              unit: item.unit,
             })),
           }}
           submitLabel="Guardar cambios"

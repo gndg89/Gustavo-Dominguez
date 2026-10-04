@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
 import { saleSchema } from "@/lib/validations";
-import { calculateDishCost } from "@/lib/costing";
+import { calculateRecipeCost } from "@/lib/costing";
+import { convertQuantity } from "@/lib/units";
 import type { ActionState } from "@/lib/action-state";
 import { requireSession } from "@/lib/require-session";
 
@@ -20,7 +21,7 @@ export async function createSale(
     return { error: parsed.error.issues[0]?.message ?? "Datos inválidos" };
   }
 
-  const { dishId, quantity, saleDate } = parsed.data;
+  const { dishId, quantity, currency, paymentMethod, saleDate } = parsed.data;
 
   const dish = await prisma.dish.findUnique({
     where: { id: dishId },
@@ -34,12 +35,7 @@ export async function createSale(
     return { error: "Este plato no tiene precio de venta definido todavía" };
   }
 
-  const unitCost = calculateDishCost(
-    dish.recipeItems.map((item) => ({
-      quantity: item.quantity,
-      costPerUnit: item.ingredient.currentCostPerUnit,
-    })),
-  );
+  const unitCost = calculateRecipeCost(dish.recipeItems);
   const unitPrice = dish.salePrice;
   const totalAmount = Math.round(unitPrice * quantity * 100) / 100;
 
@@ -52,21 +48,26 @@ export async function createSale(
         unitPrice,
         unitCost,
         totalAmount,
+        currency,
+        paymentMethod,
         saleDate,
       },
     }),
-    ...dish.recipeItems.map((item) =>
-      prisma.ingredient.update({
+    ...dish.recipeItems.map((item) => {
+      const usedQuantity =
+        convertQuantity(item.quantity, item.unit, item.ingredient.unit) * quantity;
+      return prisma.ingredient.update({
         where: { id: item.ingredientId },
         data: {
-          stockQuantity: { decrement: item.quantity * quantity },
+          stockQuantity: { decrement: usedQuantity },
         },
-      }),
-    ),
+      });
+    }),
   ]);
 
   revalidatePath("/ventas");
   revalidatePath("/insumos");
+  revalidatePath("/contabilidad");
   revalidatePath("/dashboard");
   redirect("/ventas");
 }

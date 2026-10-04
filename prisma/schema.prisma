@@ -20,6 +20,20 @@ enum Unit {
   UNIT
 }
 
+enum Currency {
+  BS
+  USD
+}
+
+enum PaymentMethod {
+  EFECTIVO
+  PAGO_MOVIL
+  TRANSFERENCIA
+  ZELLE
+  TARJETA
+  OTRO
+}
+
 model User {
   id           String   @id @default(cuid())
   name         String
@@ -59,12 +73,14 @@ model Purchase {
   ingredientId String
   supplier     Supplier?  @relation(fields: [supplierId], references: [id])
   supplierId   String?
-  quantity     Float
-  totalCost    Float
-  pricePerUnit Float
-  purchaseDate DateTime   @default(now())
-  notes        String?
-  createdAt    DateTime   @default(now())
+  quantity      Float
+  totalCost     Float
+  pricePerUnit  Float
+  currency      Currency      @default(BS)
+  paymentMethod PaymentMethod @default(EFECTIVO)
+  purchaseDate  DateTime      @default(now())
+  notes         String?
+  createdAt     DateTime      @default(now())
 
   @@index([ingredientId])
   @@index([supplierId])
@@ -89,22 +105,25 @@ model RecipeItem {
   ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
   ingredientId String
   quantity     Float
+  unit         Unit
 
   @@unique([dishId, ingredientId])
 }
 
 model Sale {
-  id          String   @id @default(cuid())
-  dish        Dish     @relation(fields: [dishId], references: [id])
-  dishId      String
-  user        User?    @relation(fields: [userId], references: [id])
-  userId      String?
-  quantity    Int      @default(1)
-  unitPrice   Float
-  unitCost    Float
-  totalAmount Float
-  saleDate    DateTime @default(now())
-  createdAt   DateTime @default(now())
+  id            String        @id @default(cuid())
+  dish          Dish          @relation(fields: [dishId], references: [id])
+  dishId        String
+  user          User?         @relation(fields: [userId], references: [id])
+  userId        String?
+  quantity      Int           @default(1)
+  unitPrice     Float
+  unitCost      Float
+  totalAmount   Float
+  currency      Currency      @default(BS)
+  paymentMethod PaymentMethod @default(EFECTIVO)
+  saleDate      DateTime      @default(now())
+  createdAt     DateTime      @default(now())
 
   @@index([dishId])
 }

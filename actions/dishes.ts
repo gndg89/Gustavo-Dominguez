@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
 import { dishSchema } from "@/lib/validations";
+import { compatibleUnits } from "@/lib/units";
 import type { ActionState } from "@/lib/action-state";
 import { requireSession } from "@/lib/require-session";
 
@@ -28,6 +29,27 @@ function parseDishFormData(formData: FormData) {
   });
 }
 
+async function validateItemUnits(items: { ingredientId: string; unit: string }[]) {
+  const ingredientIds = items.map((item) => item.ingredientId);
+  const ingredients = await prisma.ingredient.findMany({
+    where: { id: { in: ingredientIds } },
+  });
+
+  if (ingredients.length !== new Set(ingredientIds).size) {
+    return "Hay insumos repetidos o inválidos en la receta";
+  }
+
+  const ingredientById = new Map(ingredients.map((ing) => [ing.id, ing]));
+  for (const item of items) {
+    const ingredient = ingredientById.get(item.ingredientId);
+    if (!ingredient || !compatibleUnits(ingredient.unit).includes(item.unit)) {
+      return "La unidad de una de las líneas no es compatible con su insumo";
+    }
+  }
+
+  return null;
+}
+
 export async function createDish(
   _prevState: ActionState,
   formData: FormData,
@@ -41,13 +63,8 @@ export async function createDish(
 
   const { name, description, salePrice, isActive, items } = parsed.data;
 
-  const ingredientIds = items.map((item) => item.ingredientId);
-  const existingCount = await prisma.ingredient.count({
-    where: { id: { in: ingredientIds } },
-  });
-  if (existingCount !== new Set(ingredientIds).size) {
-    return { error: "Hay insumos repetidos o inválidos en la receta" };
-  }
+  const unitError = await validateItemUnits(items);
+  if (unitError) return { error: unitError };
 
   await prisma.dish.create({
     data: {
@@ -59,6 +76,7 @@ export async function createDish(
         create: items.map((item) => ({
           ingredientId: item.ingredientId,
           quantity: item.quantity,
+          unit: item.unit,
         })),
       },
     },
@@ -83,13 +101,8 @@ export async function updateDish(
 
   const { name, description, salePrice, isActive, items } = parsed.data;
 
-  const ingredientIds = items.map((item) => item.ingredientId);
-  const existingCount = await prisma.ingredient.count({
-    where: { id: { in: ingredientIds } },
-  });
-  if (existingCount !== new Set(ingredientIds).size) {
-    return { error: "Hay insumos repetidos o inválidos en la receta" };
-  }
+  const unitError = await validateItemUnits(items);
+  if (unitError) return { error: unitError };
 
   await prisma.$transaction([
     prisma.recipeItem.deleteMany({ where: { dishId: id } }),
@@ -104,6 +117,7 @@ export async function updateDish(
           create: items.map((item) => ({
             ingredientId: item.ingredientId,
             quantity: item.quantity,
+            unit: item.unit,
           })),
         },
       },

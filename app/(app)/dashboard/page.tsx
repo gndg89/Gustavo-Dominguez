@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { calculateDishCost, calculateMargin } from "@/lib/costing";
+import { calculateMargin, calculateRecipeCost } from "@/lib/costing";
 import { formatCurrency } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatCard } from "@/components/dashboard/StatCard";
@@ -32,12 +32,7 @@ export default async function DashboardPage() {
 
   const dishMargins: DishMargin[] = dishes
     .map((dish) => {
-      const cost = calculateDishCost(
-        dish.recipeItems.map((item) => ({
-          quantity: item.quantity,
-          costPerUnit: item.ingredient.currentCostPerUnit,
-        })),
-      );
+      const cost = calculateRecipeCost(dish.recipeItems);
       const margin = calculateMargin(dish.salePrice, cost) ?? 0;
       return { id: dish.id, name: dish.name, cost, salePrice: dish.salePrice as number, margin };
     })

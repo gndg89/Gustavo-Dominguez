@@ -1,6 +1,14 @@
+import { convertQuantity } from "./units";
+
 export type CostableItem = {
   quantity: number;
   costPerUnit: number;
+};
+
+export type RecipeLineForCost = {
+  quantity: number;
+  unit: string;
+  ingredient: { unit: string; currentCostPerUnit: number };
 };
 
 export function round2(value: number): number {
@@ -13,6 +21,15 @@ export function calculateDishCost(items: CostableItem[]): number {
     0,
   );
   return round2(total);
+}
+
+export function calculateRecipeCost(items: RecipeLineForCost[]): number {
+  return calculateDishCost(
+    items.map((item) => ({
+      quantity: convertQuantity(item.quantity, item.unit, item.ingredient.unit),
+      costPerUnit: item.ingredient.currentCostPerUnit,
+    })),
+  );
 }
 
 export function calculateMargin(
