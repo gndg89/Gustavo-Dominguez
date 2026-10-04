@@ -14,13 +14,15 @@ Panel administrativo para un emprendimiento de restaurante / *dark kitchen*: con
 
 ## Stack técnico
 
-Next.js (App Router, TypeScript) + Prisma ORM + SQLite (desarrollo, fácil de migrar a Postgres) + NextAuth (Auth.js) v5 con Credentials + Tailwind CSS.
+Next.js (App Router, TypeScript) + Prisma ORM + PostgreSQL + NextAuth (Auth.js) v5 con Credentials + Tailwind CSS.
 
 ## Cómo correrlo localmente
 
+Necesitas una base de datos Postgres accesible (local, Docker, o la misma que usas en producción en Railway).
+
 ```bash
 npm install
-cp .env.example .env   # y ajusta NEXTAUTH_SECRET si quieres uno propio
+cp .env.example .env   # ajusta DATABASE_URL a tu Postgres y NEXTAUTH_SECRET
 npx prisma migrate dev
 npm run db:seed
 npm run dev
@@ -36,11 +38,23 @@ Cambia esa contraseña (o crea tu propio usuario ADMIN) antes de usarlo en produ
 ## Scripts disponibles
 
 - `npm run dev` — servidor de desarrollo
-- `npm run build` / `npm run start` — build y arranque en producción
-- `npm run db:migrate` — crear/aplicar migraciones de Prisma
-- `npm run db:seed` — cargar datos de ejemplo
+- `npm run build` — build de producción
+- `npm run start` — aplica migraciones pendientes, garantiza que exista un usuario admin, y arranca el servidor (pensado para producción/Railway)
+- `npm run db:migrate` — crear/aplicar migraciones de Prisma en desarrollo
+- `npm run db:seed` — cargar datos de ejemplo (insumos, receta y venta de muestra) — solo para desarrollo local
 - `npm run db:studio` — explorar la base de datos con Prisma Studio
 
-## Pasar a producción (Postgres)
+## Despliegue en Railway
 
-El `datasource` en `prisma/schema.prisma` está configurado con `provider = "sqlite"`. Para desplegar (por ejemplo en Railway), cambia ese provider a `"postgresql"`, actualiza `DATABASE_URL` a la cadena de conexión de Postgres y vuelve a correr `npx prisma migrate deploy`. El resto del esquema y del código no necesita cambios.
+El proyecto está desplegado en Railway con dos servicios: una base de datos **Postgres** y el servicio **web** (esta app, construida desde la rama `claude/blissful-galileo-tkq5hc`).
+
+Variables de entorno del servicio web:
+
+- `DATABASE_URL` — referencia a la del servicio Postgres (`${{Postgres.DATABASE_URL}}`)
+- `NEXTAUTH_SECRET` — secreto propio de producción
+- `NEXTAUTH_URL` — el dominio público que Railway asigna al servicio
+- `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` (opcionales) — credenciales del usuario admin que `scripts/ensure-admin.mjs` crea automáticamente en el primer arranque si no existe ningún usuario todavía. Por defecto: `admin@cocina.local` / `admin1234`.
+
+En cada arranque, `npm run start` corre `prisma migrate deploy` (aplica migraciones pendientes) y `scripts/ensure-admin.mjs` (crea el admin si la base está vacía) antes de levantar el servidor — ambos pasos son seguros de repetir.
+
+**Nota sobre el plan gratuito de Railway**: el plan Free da $1 de crédito de uso al mes, compartido entre los dos servicios (web + Postgres), con topes de 0.5 GB RAM / 1 vCPU / 1 GB de disco por servicio. Para un panel interno de bajo tráfico suele alcanzar, pero si el uso se pasa de ese crédito y no hay una tarjeta registrada en la cuenta, Railway pausa el servicio hasta el mes siguiente. Si eso pasa, la alternativa es esperar al siguiente ciclo o pasar al plan Hobby (desde $5/mes) agregando una tarjeta.
