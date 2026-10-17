@@ -20,6 +20,8 @@ El negocio mezcla tres tipos de oferta que hoy no están organizados:
 2. **Cursos de cocina** presenciales con estos productos como protagonistas (ya realizó eventos como "1ra edición pan.pensado y fungilandia" y "Noche de Cocina Peruana")
 3. **Servicios de asesoría**: culinaria y de registro sanitario/farmacéutico de alimentos, vía un CV que quiere actualizar
 
+Mafe es bioquímica con casi 40 años en el ambiente de la Facultad de Medicina, y hace 10 años desarrolló un pan con principios activos como modelo de alimentación funcional. Su historia completa, un banco de 19 ideas de charlas/contenido educativo que ya tiene pensadas, y notas de la última conversación con ella (catálogo de referencia, fotos recibidas, pendientes) están organizados en `historia-personal-y-banco-de-charlas.md`.
+
 ## Decisiones de alcance (acordadas)
 
 - **Canal de venta:** Instagram Shopping + catálogo de WhatsApp Business. Sin sitio web ni pasarela de pago por ahora.
@@ -38,6 +40,7 @@ El negocio mezcla tres tipos de oferta que hoy no están organizados:
   - "Asesorías"
   - "Cómo comprar" (explica el flujo Instagram → WhatsApp)
   - "Testimonios/Eventos"
+  - "Quién soy" (su historia como bioquímica y por qué vuelve a la cocina — ver `historia-personal-y-banco-de-charlas.md`; usar las fotos de retrato en `fotos-mafe/`)
 
 ## 2. Catálogo y embudo de venta (semana 1-2)
 
@@ -55,7 +58,7 @@ Ver checklist detallado en `checklist-configuracion.md`.
 2. **Producto + storytelling**: producto terminado, proceso de elaboración, CTA de compra.
 3. **Prueba social**: material de eventos pasados recortado en clips cortos para Reels.
 4. **Cursos**: behind-the-scenes de clases, testimonios, anuncio de próxima fecha con cupos limitados.
-5. **Asesorías**: contenido de autoridad (tips de registro sanitario, errores comunes al formular un producto alimenticio), sin mezclar tono con la venta de producto.
+5. **Asesorías**: contenido de autoridad (tips de registro sanitario, errores comunes al formular un producto alimenticio), sin mezclar tono con la venta de producto. Mafe ya tiene un banco de 19 temas de charla listos para convertir en Reels o posts de este pilar (ver `historia-personal-y-banco-de-charlas.md`); priorizar primero los que conectan con su línea sin gluten (panes funcionales, alergias alimentarias).
 
 Cadencia de arranque: 3-4 publicaciones/semana + historias diarias. Calendario detallado en `calendario-editorial-4-semanas.md`.
 
@@ -70,6 +73,8 @@ Cadencia de arranque: 3-4 publicaciones/semana + historias diarias. Calendario d
 
 - No hay atajo para recuperar los 14,000 seguidores perdidos, pero sí se puede acelerar: listas de difusión de WhatsApp, historias pidiendo seguir la cuenta nueva, mencionar la cuenta en cada evento/clase presencial.
 - Colaboraciones cruzadas con personas con quienes ya hizo eventos (ej. chef Ivanel Lamas) para recuperar alcance vía menciones cruzadas.
+- Mafe ya anunció públicamente que quiere reconectar con sus seguidores de las cuentas anteriores **@cocinafrugal** y **@acaciacomedor**: aprovechar eso con una historia/publicación específica invitándolos a la cuenta nueva.
+- Pendiente agendar una visita al huerto de Mafe (ella misma invitó a Gustavo) — es material directo para el pilar "Producto + storytelling" (origen de las flores comestibles y hierbas).
 
 ## 6. Métricas a seguir
 
