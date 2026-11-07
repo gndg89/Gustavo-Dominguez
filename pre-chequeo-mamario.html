@@ -351,17 +351,17 @@
 
   // Silueta tipo domo (vista frontal, con volumen) — los "gajos" grandes
   // de abajo se recortan contra esta silueta (clip-path), así el dibujo
-  // sale con forma de mama real en vez de un círculo parejo. DOME_TAIL es
-  // la "cola de Spence" (prolongación axilar) — para la mama derecha se
-  // espeja con una transform en vez de reescribir el path a mano.
-  var DOME_PATH = "M100,18 C148,20 182,56 184,108 C186,152 162,182 128,189 C118,191 108,192 100,192 C92,192 82,191 72,189 C38,182 14,152 16,108 C18,56 52,20 100,18 Z";
-  var DOME_TAIL = "M74,56 C54,34 26,10 0,-8 C-11,-16 -4,-25 10,-20 C42,-8 72,10 94,32 C102,40 98,52 85,55 C81,56 77,57 74,56 Z";
+  // sale con forma de mama real en vez de un círculo parejo — un solo
+  // trazo (sin costura visible) que ya trae integrada la prolongación
+  // hacia la axila ("cola de Spence") del lado derecho de este viewBox;
+  // para la mama izquierda se espeja con una transform.
+  var DOME_PATH = "M90,18 C125,6 160,-2 180,14 C194,26 190,50 186,78 C190,108 186,138 176,163 C166,188 136,198 100,198 C65,198 32,182 20,150 C10,122 10,85 18,55 C25,28 55,10 90,18 Z";
   var MIRROR_TRANSFORM = "scale(-1,1) translate(-200,0)";
   var WEDGE_PATHS = {
-    tr: "M100,108 L100,-10 A118,118 0 0 1 218,108 Z",
-    br: "M100,108 L218,108 A118,118 0 0 1 100,226 Z",
-    bl: "M100,108 L100,226 A118,118 0 0 1 -18,108 Z",
-    tl: "M100,108 L-18,108 A118,118 0 0 1 100,-10 Z"
+    tr: "M100,108 L100,-32 A140,140 0 0 1 240,108 Z",
+    br: "M100,108 L240,108 A140,140 0 0 1 100,248 Z",
+    bl: "M100,108 L100,248 A140,140 0 0 1 -40,108 Z",
+    tl: "M100,108 L-40,108 A140,140 0 0 1 100,-32 Z"
   };
   var WEDGE_DOT_POS = { tr: [140, 70], br: [140, 150], bl: [60, 150], tl: [60, 70] };
   var WEDGE_RING_CENTER = { tr: [148, 58], br: [148, 160], bl: [52, 160], tl: [52, 58] };
@@ -430,8 +430,8 @@
       return '<circle class="ring" data-ring-for="' + zoneId + '" cx="' + ringPos[0] + '" cy="' + ringPos[1] + '" r="16"></circle>';
     }).join("");
     var centroId = sideCfg.side + "-centro";
-    var mirror = sideCfg.side === "der" ? ' transform="' + MIRROR_TRANSFORM + '"' : "";
-    var domeShape = DOME_PATH + " " + DOME_TAIL;
+    var mirror = sideCfg.side === "izq" ? ' transform="' + MIRROR_TRANSFORM + '"' : "";
+    var domeShape = DOME_PATH;
     return (
       '<svg class="breast-svg" viewBox="0 0 200 200" role="img" aria-label="Diagrama de ' + sideCfg.title + '">' +
         '<defs>' +
