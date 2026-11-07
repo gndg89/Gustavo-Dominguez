@@ -351,8 +351,12 @@
 
   // Silueta tipo domo (vista frontal, con volumen) — los "gajos" grandes
   // de abajo se recortan contra esta silueta (clip-path), así el dibujo
-  // sale con forma de mama real en vez de un círculo parejo.
+  // sale con forma de mama real en vez de un círculo parejo. DOME_TAIL es
+  // la "cola de Spence" (prolongación axilar) — para la mama derecha se
+  // espeja con una transform en vez de reescribir el path a mano.
   var DOME_PATH = "M100,18 C148,20 182,56 184,108 C186,152 162,182 128,189 C118,191 108,192 100,192 C92,192 82,191 72,189 C38,182 14,152 16,108 C18,56 52,20 100,18 Z";
+  var DOME_TAIL = "M74,56 C54,34 26,10 0,-8 C-11,-16 -4,-25 10,-20 C42,-8 72,10 94,32 C102,40 98,52 85,55 C81,56 77,57 74,56 Z";
+  var MIRROR_TRANSFORM = "scale(-1,1) translate(-200,0)";
   var WEDGE_PATHS = {
     tr: "M100,108 L100,-10 A118,118 0 0 1 218,108 Z",
     br: "M100,108 L218,108 A118,118 0 0 1 100,226 Z",
@@ -426,26 +430,29 @@
       return '<circle class="ring" data-ring-for="' + zoneId + '" cx="' + ringPos[0] + '" cy="' + ringPos[1] + '" r="16"></circle>';
     }).join("");
     var centroId = sideCfg.side + "-centro";
-    var highlightCx = sideCfg.side === "izq" ? 70 : 130;
+    var mirror = sideCfg.side === "der" ? ' transform="' + MIRROR_TRANSFORM + '"' : "";
+    var domeShape = DOME_PATH + " " + DOME_TAIL;
     return (
       '<svg class="breast-svg" viewBox="0 0 200 200" role="img" aria-label="Diagrama de ' + sideCfg.title + '">' +
         '<defs>' +
-          '<radialGradient id="' + shadeId + '" gradientUnits="userSpaceOnUse" cx="' + highlightCx + '" cy="55" r="150">' +
+          '<radialGradient id="' + shadeId + '" gradientUnits="userSpaceOnUse" cx="70" cy="50" r="150">' +
             '<stop offset="0%" stop-color="#eaffff" stop-opacity="0.45"></stop>' +
             '<stop offset="42%" stop-color="#4FF3FF" stop-opacity="0.1"></stop>' +
             '<stop offset="100%" stop-color="#4FF3FF" stop-opacity="0"></stop>' +
           '</radialGradient>' +
-          '<clipPath id="' + clipId + '"><path d="' + DOME_PATH + '"></path></clipPath>' +
+          '<clipPath id="' + clipId + '"><path d="' + domeShape + '"' + mirror + '></path></clipPath>' +
         '</defs>' +
         '<g clip-path="url(#' + clipId + ')">' +
           wedgesSvg +
-          '<circle class="areola" data-zone="' + centroId + '" cx="100" cy="152" r="22"></circle>' +
-          meshSvg +
-          '<path d="' + DOME_PATH + '" fill="url(#' + shadeId + ')" style="mix-blend-mode:screen;pointer-events:none"></path>' +
+          '<circle class="areola" data-zone="' + centroId + '" cx="100" cy="108" r="19"></circle>' +
+          '<g' + mirror + '>' +
+            meshSvg +
+            '<path d="' + domeShape + '" fill="url(#' + shadeId + ')" style="mix-blend-mode:screen;pointer-events:none"></path>' +
+          '</g>' +
         '</g>' +
-        '<path class="dome-outline" d="' + DOME_PATH + '"></path>' +
+        '<path class="dome-outline" d="' + domeShape + '"' + mirror + '></path>' +
         ringsSvg +
-        '<circle class="ring" data-ring-for="' + centroId + '" cx="100" cy="152" r="13"></circle>' +
+        '<circle class="ring" data-ring-for="' + centroId + '" cx="100" cy="108" r="11"></circle>' +
         '<g data-dots-for="' + sideCfg.side + '"></g>' +
       '</svg>'
     );
