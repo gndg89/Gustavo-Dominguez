@@ -21,6 +21,11 @@
     --font-body: 'Archivo', -apple-system, BlinkMacSystemFont, sans-serif;
     --shadow-card: 0 1px 2px rgba(36,16,25,0.04), 0 10px 28px rgba(36,16,25,0.06);
     --shadow-float: 0 -6px 24px rgba(36,16,25,0.10);
+    --holo-bg: #060a16;
+    --holo-bg-2: #0a1324;
+    --holo-cyan: #4FF3FF;
+    --holo-cyan-dim: rgba(79,243,255,0.18);
+    --holo-grid: rgba(79,243,255,0.14);
     color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
@@ -97,28 +102,75 @@
   }
   .counter-chip.show { opacity: 1; transform: scale(1); }
 
-  .diagrams { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .diagram-box { text-align: center; }
-  .diagram-label { font-size: 13px; font-weight: 600; margin-top: 8px; }
-  .diagram-sub { font-size: 11px; color: var(--muted); }
-  .breast-svg { width: 100%; height: auto; max-width: 220px; aspect-ratio: 1; touch-action: manipulation; overflow: visible; }
-  .wedge, .areola {
-    fill: var(--surface-2); stroke: var(--line); stroke-width: 2; cursor: pointer;
-    transform-box: fill-box; transform-origin: center;
+  .holo-panel {
+    position: relative; background: radial-gradient(ellipse at 50% 35%, var(--holo-bg-2), var(--holo-bg) 72%);
+    border-radius: 16px; padding: 22px 14px 14px; overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgba(79,243,255,0.15), inset 0 0 40px rgba(79,243,255,0.06);
+  }
+  .holo-panel::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+    background: repeating-linear-gradient(0deg, rgba(79,243,255,0.05) 0px, rgba(79,243,255,0.05) 1px, transparent 1px, transparent 3px);
+  }
+  .holo-label {
+    position: relative; font-family: var(--font-body); font-size: 10px; font-weight: 700; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--holo-cyan); opacity: .75; text-align: center; margin-bottom: 10px;
   }
   @media (prefers-reduced-motion: no-preference) {
-    .wedge, .areola { transition: fill .18s ease, stroke .18s ease, transform .15s cubic-bezier(.2,.8,.2,1); }
+    .holo-label::before {
+      content: "●"; display: inline-block; margin-right: 6px; animation: holo-blink 1.6s ease-in-out infinite;
+    }
+    @keyframes holo-blink { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
   }
-  .wedge:hover, .areola:hover { fill: var(--rose-soft); }
-  .wedge.marked, .areola.marked { fill: var(--rose-soft); stroke: var(--rose); }
-  .wedge.active-edit, .areola.active-edit { stroke: var(--rose-deep); stroke-width: 3; transform: scale(1.035); }
-  .ring { fill: none; stroke: var(--rose-deep); stroke-width: 1.4; opacity: 0; pointer-events: none; }
-  .ring.show { opacity: .55; }
+  .diagrams { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .diagram-box { text-align: center; position: relative; }
+  .diagram-label { font-size: 13px; font-weight: 600; margin-top: 10px; color: #fff; }
+  .diagram-sub { font-size: 11px; color: var(--holo-cyan); opacity: .7; }
+  .holo-stage { position: relative; }
+  .holo-rings {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none;
+  }
+  .holo-rings span {
+    position: absolute; width: 82%; height: 82%; border-radius: 50%; border: 1px solid var(--holo-cyan); opacity: 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .holo-rings span { animation: holo-radar 3.6s ease-out infinite; }
+    .holo-rings span:nth-child(2) { animation-delay: 1.2s; }
+    .holo-rings span:nth-child(3) { animation-delay: 2.4s; }
+    @keyframes holo-radar {
+      0% { transform: scale(.55); opacity: .5; } 100% { transform: scale(1.05); opacity: 0; }
+    }
+  }
+  .holo-sweep {
+    position: absolute; inset: 6%; border-radius: 50%; pointer-events: none; mix-blend-mode: screen;
+    background: conic-gradient(from 0deg, transparent 0deg, var(--holo-cyan-dim) 26deg, transparent 56deg);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .holo-sweep { animation: holo-spin 5s linear infinite; }
+    .diagram-box:nth-child(2) .holo-sweep { animation-duration: 6.5s; animation-direction: reverse; }
+    @keyframes holo-spin { to { transform: rotate(360deg); } }
+  }
+  .breast-svg { position: relative; width: 100%; height: auto; max-width: 220px; aspect-ratio: 1; touch-action: manipulation; overflow: visible; }
+  .wedge, .areola {
+    fill: rgba(79,243,255,0.05); stroke: var(--holo-cyan); stroke-width: 1.4; stroke-opacity: .55; cursor: pointer;
+    transform-box: fill-box; transform-origin: center;
+    filter: drop-shadow(0 0 3px rgba(79,243,255,0.35));
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .wedge, .areola { transition: fill .18s ease, stroke .18s ease, transform .15s cubic-bezier(.2,.8,.2,1), filter .18s ease; }
+  }
+  .wedge:hover, .areola:hover { fill: rgba(79,243,255,0.14); stroke-opacity: .9; }
+  .wedge.marked, .areola.marked { fill-opacity: .3; stroke-opacity: 1; }
+  .wedge.marked.dolor, .areola.marked.dolor { fill: var(--rose); stroke: var(--rose); filter: drop-shadow(0 0 7px var(--rose)); }
+  .wedge.marked.hinchazon, .areola.marked.hinchazon { fill: var(--amber); stroke: var(--amber); filter: drop-shadow(0 0 7px var(--amber)); }
+  .wedge.marked.enrojecimiento, .areola.marked.enrojecimiento { fill: var(--coral); stroke: var(--coral); filter: drop-shadow(0 0 7px var(--coral)); }
+  .wedge.active-edit, .areola.active-edit { stroke: #fff; stroke-width: 2.4; transform: scale(1.035); }
+  .ring { fill: none; stroke: #fff; stroke-width: 1.4; opacity: 0; pointer-events: none; }
+  .ring.show { opacity: .7; }
   @media (prefers-reduced-motion: no-preference) {
     .ring { transition: opacity .2s ease; }
     .ring.show { animation: pulse-ring 1.6s ease-out infinite; }
     @keyframes pulse-ring {
-      0% { transform: scale(1); opacity: .5; } 70% { transform: scale(1.18); opacity: 0; } 100% { opacity: 0; }
+      0% { transform: scale(1); opacity: .6; } 70% { transform: scale(1.22); opacity: 0; } 100% { opacity: 0; }
     }
   }
   .zone-dot { pointer-events: none; }
@@ -237,7 +289,10 @@
       <span class="counter-chip" id="counterChip">0 zonas</span>
     </div>
 
-    <div class="diagrams" id="diagrams"></div>
+    <div class="holo-panel">
+      <div class="holo-label">Escaneo en vivo</div>
+      <div class="diagrams" id="diagrams"></div>
+    </div>
 
     <div class="editor" id="editorCard"></div>
   </div>
@@ -367,7 +422,12 @@
     var host = document.getElementById("diagrams");
     host.innerHTML = SIDES.map(function (s) {
       return (
-        '<div class="diagram-box">' + buildDiagramSVG(s) +
+        '<div class="diagram-box">' +
+          '<div class="holo-stage">' +
+            '<div class="holo-rings"><span></span><span></span><span></span></div>' +
+            '<div class="holo-sweep"></div>' +
+            buildDiagramSVG(s) +
+          '</div>' +
           '<div class="diagram-label">' + s.title + '</div>' +
           (s.sub ? '<div class="diagram-sub">' + s.sub + '</div>' : '<div class="diagram-sub">&nbsp;</div>') +
         '</div>'
@@ -399,7 +459,10 @@
   function renderWedgeStates() {
     document.querySelectorAll("[data-zone]").forEach(function (el) {
       var zoneId = el.getAttribute("data-zone");
-      el.classList.toggle("marked", zoneSymptoms(zoneId).length > 0);
+      var symptoms = zoneSymptoms(zoneId);
+      el.classList.remove("dolor", "hinchazon", "enrojecimiento");
+      el.classList.toggle("marked", symptoms.length > 0);
+      if (symptoms.length) el.classList.add(symptoms[0]);
       el.classList.toggle("active-edit", state.activeZone === zoneId);
     });
     document.querySelectorAll("[data-ring-for]").forEach(function (el) {
