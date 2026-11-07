@@ -175,6 +175,11 @@
   }
   .zone-dot { pointer-events: none; }
   .zone-dot.dolor { fill: var(--rose); } .zone-dot.hinchazon { fill: var(--amber); } .zone-dot.enrojecimiento { fill: var(--coral); }
+  .holo-mesh { fill: none; stroke: var(--holo-cyan); stroke-width: 1; opacity: .22; pointer-events: none; }
+  .dome-outline {
+    fill: none; stroke: var(--holo-cyan); stroke-width: 1.6; opacity: .85; pointer-events: none;
+    filter: drop-shadow(0 0 4px var(--holo-cyan));
+  }
 
   .editor { border-top: 1px dashed var(--line); margin-top: 16px; padding-top: 16px; min-height: 76px; }
   .editor-empty {
@@ -344,14 +349,22 @@
     { key: "enrojecimiento", label: "Enrojecimiento" }
   ];
 
+  // Silueta tipo domo (vista frontal, con volumen) — los "gajos" grandes
+  // de abajo se recortan contra esta silueta (clip-path), así el dibujo
+  // sale con forma de mama real en vez de un círculo parejo.
+  var DOME_PATH = "M100,18 C148,20 182,56 184,108 C186,152 162,182 128,189 C118,191 108,192 100,192 C92,192 82,191 72,189 C38,182 14,152 16,108 C18,56 52,20 100,18 Z";
   var WEDGE_PATHS = {
-    tr: "M100,100 L100,8 A92,92 0 0 1 192,100 Z",
-    br: "M100,100 L192,100 A92,92 0 0 1 100,192 Z",
-    bl: "M100,100 L100,192 A92,92 0 0 1 8,100 Z",
-    tl: "M100,100 L8,100 A92,92 0 0 1 100,8 Z"
+    tr: "M100,108 L100,-10 A118,118 0 0 1 218,108 Z",
+    br: "M100,108 L218,108 A118,118 0 0 1 100,226 Z",
+    bl: "M100,108 L100,226 A118,118 0 0 1 -18,108 Z",
+    tl: "M100,108 L-18,108 A118,118 0 0 1 100,-10 Z"
   };
-  var WEDGE_DOT_POS = { tr: [136, 64], br: [136, 136], bl: [64, 136], tl: [64, 64] };
-  var WEDGE_RING_CENTER = { tr: [146, 54], br: [146, 146], bl: [54, 146], tl: [54, 54] };
+  var WEDGE_DOT_POS = { tr: [140, 70], br: [140, 150], bl: [60, 150], tl: [60, 70] };
+  var WEDGE_RING_CENTER = { tr: [148, 58], br: [148, 160], bl: [52, 160], tl: [52, 58] };
+  var MESH_LINES = [
+    "M30,82 Q100,66 170,82", "M17,120 Q100,104 183,120", "M33,160 Q100,176 167,160",
+    "M68,26 Q56,108 68,187", "M132,26 Q144,108 132,187"
+  ];
 
   var SIDES = [
     {
@@ -398,21 +411,41 @@
   }
 
   function buildDiagramSVG(sideCfg) {
+    var clipId = "domeClip-" + sideCfg.side;
+    var shadeId = "domeShade-" + sideCfg.side;
     var wedgesSvg = Object.keys(sideCfg.quadrants).map(function (wedgeKey) {
       var quadrant = sideCfg.quadrants[wedgeKey];
       var zoneId = sideCfg.side + "-" + quadrant;
+      return '<path class="wedge" data-zone="' + zoneId + '" d="' + WEDGE_PATHS[wedgeKey] + '"></path>';
+    }).join("");
+    var meshSvg = MESH_LINES.map(function (d) { return '<path class="holo-mesh" d="' + d + '"></path>'; }).join("");
+    var ringsSvg = Object.keys(sideCfg.quadrants).map(function (wedgeKey) {
+      var quadrant = sideCfg.quadrants[wedgeKey];
+      var zoneId = sideCfg.side + "-" + quadrant;
       var ringPos = WEDGE_RING_CENTER[wedgeKey];
-      return (
-        '<path class="wedge" data-zone="' + zoneId + '" d="' + WEDGE_PATHS[wedgeKey] + '"></path>' +
-        '<circle class="ring" data-ring-for="' + zoneId + '" cx="' + ringPos[0] + '" cy="' + ringPos[1] + '" r="16"></circle>'
-      );
+      return '<circle class="ring" data-ring-for="' + zoneId + '" cx="' + ringPos[0] + '" cy="' + ringPos[1] + '" r="16"></circle>';
     }).join("");
     var centroId = sideCfg.side + "-centro";
+    var highlightCx = sideCfg.side === "izq" ? 70 : 130;
     return (
       '<svg class="breast-svg" viewBox="0 0 200 200" role="img" aria-label="Diagrama de ' + sideCfg.title + '">' +
-        wedgesSvg +
-        '<circle class="areola" data-zone="' + centroId + '" cx="100" cy="100" r="27"></circle>' +
-        '<circle class="ring" data-ring-for="' + centroId + '" cx="100" cy="100" r="14"></circle>' +
+        '<defs>' +
+          '<radialGradient id="' + shadeId + '" gradientUnits="userSpaceOnUse" cx="' + highlightCx + '" cy="55" r="150">' +
+            '<stop offset="0%" stop-color="#eaffff" stop-opacity="0.45"></stop>' +
+            '<stop offset="42%" stop-color="#4FF3FF" stop-opacity="0.1"></stop>' +
+            '<stop offset="100%" stop-color="#4FF3FF" stop-opacity="0"></stop>' +
+          '</radialGradient>' +
+          '<clipPath id="' + clipId + '"><path d="' + DOME_PATH + '"></path></clipPath>' +
+        '</defs>' +
+        '<g clip-path="url(#' + clipId + ')">' +
+          wedgesSvg +
+          '<circle class="areola" data-zone="' + centroId + '" cx="100" cy="152" r="22"></circle>' +
+          meshSvg +
+          '<path d="' + DOME_PATH + '" fill="url(#' + shadeId + ')" style="mix-blend-mode:screen;pointer-events:none"></path>' +
+        '</g>' +
+        '<path class="dome-outline" d="' + DOME_PATH + '"></path>' +
+        ringsSvg +
+        '<circle class="ring" data-ring-for="' + centroId + '" cx="100" cy="152" r="13"></circle>' +
         '<g data-dots-for="' + sideCfg.side + '"></g>' +
       '</svg>'
     );
