@@ -1,11 +1,12 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <title>Pre-Chequeo Mamario</title>
 <style>
-  /* Layout: hero + two side-by-side clickable breast diagrams, a live editor card,
-     a running plain-language summary, then a WhatsApp hand-off — single column, mobile-first. */
+  /* Layout: numbered 3-step guide → one instrument card (diagram + live editor,
+     no scroll between action and feedback) → summary+details card → sticky send bar. */
   :root {
     --bg: #FAF6F3;
     --surface: #FFFFFF;
+    --surface-2: #FCF8F6;
     --ink: #241019;
     --muted: #6B5861;
     --line: #EAE2DC;
@@ -18,20 +19,26 @@
     --coral-soft: #F7E3DA;
     --font-display: 'Fraunces', Georgia, serif;
     --font-body: 'Archivo', -apple-system, BlinkMacSystemFont, sans-serif;
+    --shadow-card: 0 1px 2px rgba(36,16,25,0.04), 0 10px 28px rgba(36,16,25,0.06);
+    --shadow-float: 0 -6px 24px rgba(36,16,25,0.10);
     color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #1B0F14; --surface: #251520; --ink: #F3E7EB; --muted: #C9AEB7; --line: #432734;
+      --bg: #1B0F14; --surface: #251520; --surface-2: #2B1A25; --ink: #F3E7EB; --muted: #C9AEB7; --line: #432734;
       --rose: #FF6E95; --rose-deep: #FF9AB5; --amber: #E0A857; --coral: #E8744D;
       --rose-soft: #3A1D28; --amber-soft: #35281A; --coral-soft: #3A2217;
+      --shadow-card: 0 1px 2px rgba(0,0,0,0.2), 0 10px 28px rgba(0,0,0,0.3);
+      --shadow-float: 0 -6px 24px rgba(0,0,0,0.4);
       color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #1B0F14; --surface: #251520; --ink: #F3E7EB; --muted: #C9AEB7; --line: #432734;
+    --bg: #1B0F14; --surface: #251520; --surface-2: #2B1A25; --ink: #F3E7EB; --muted: #C9AEB7; --line: #432734;
     --rose: #FF6E95; --rose-deep: #FF9AB5; --amber: #E0A857; --coral: #E8744D;
     --rose-soft: #3A1D28; --amber-soft: #35281A; --coral-soft: #3A2217;
+    --shadow-card: 0 1px 2px rgba(0,0,0,0.2), 0 10px 28px rgba(0,0,0,0.3);
+    --shadow-float: 0 -6px 24px rgba(0,0,0,0.4);
     color-scheme: dark;
   }
 
@@ -39,75 +46,124 @@
   body {
     background: var(--bg); color: var(--ink); font-family: var(--font-body);
     line-height: 1.5; padding-left: max(16px, env(safe-area-inset-left, 0px));
-    padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 48px;
+    padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 26px 24px;
   }
-  .wrap { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+  .wrap { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; transition: padding-bottom 0.2s ease; }
+  .wrap.reserve-bar { padding-bottom: 92px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .intro-in { animation: rise 0.5s cubic-bezier(.2,.8,.2,1) both; }
+    .intro-in.d1 { animation-delay: .04s; } .intro-in.d2 { animation-delay: .09s; } .intro-in.d3 { animation-delay: .14s; }
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  }
 
   .eyebrow {
     font-size: 12.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
     color: var(--rose-deep);
   }
   h1 {
-    font-family: var(--font-display); font-weight: 600; font-size: clamp(26px, 6vw, 32px);
+    font-family: var(--font-display); font-weight: 600; font-size: clamp(27px, 6.4vw, 33px);
     margin: 4px 0 2px; text-wrap: balance; letter-spacing: -0.01em;
   }
   .lede { color: var(--muted); font-size: 15px; max-width: 46ch; }
 
+  .steps { display: flex; gap: 10px; counter-reset: step; margin-top: 2px; }
+  .step { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .step .num {
+    width: 22px; height: 22px; border-radius: 50%; background: var(--rose-soft); color: var(--rose-deep);
+    font-family: var(--font-display); font-weight: 600; font-size: 12px; display: flex; align-items: center; justify-content: center;
+  }
+  .step .txt { font-size: 12px; color: var(--muted); line-height: 1.35; }
+
   .card {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px;
+    box-shadow: var(--shadow-card);
   }
 
   .disclaimer {
-    background: var(--rose-soft); border: 1px solid color-mix(in srgb, var(--rose) 28%, transparent);
-    border-radius: 14px; padding: 14px 16px; font-size: 13.5px; color: var(--ink); display: flex; gap: 10px;
+    background: var(--rose-soft); border: 1px solid color-mix(in srgb, var(--rose) 26%, transparent);
+    border-radius: 14px; padding: 13px 15px; font-size: 13px; color: var(--ink); display: flex; gap: 10px;
   }
   .disclaimer strong { color: var(--rose-deep); }
-  .disclaimer svg { flex: none; width: 18px; height: 18px; margin-top: 1px; color: var(--rose-deep); }
+  .disclaimer svg { flex: none; width: 17px; height: 17px; margin-top: 1px; color: var(--rose-deep); }
 
-  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
-  .legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; vertical-align: -1px; }
+  .instrument-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+  .legend .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: 1px; }
+  .counter-chip {
+    font-size: 11.5px; font-weight: 700; color: var(--rose-deep); background: var(--rose-soft);
+    padding: 4px 10px; border-radius: 999px; white-space: nowrap; opacity: 0; transform: scale(.9);
+    transition: opacity .18s ease, transform .18s ease;
+  }
+  .counter-chip.show { opacity: 1; transform: scale(1); }
 
   .diagrams { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .diagram-box { text-align: center; }
   .diagram-label { font-size: 13px; font-weight: 600; margin-top: 8px; }
-  .diagram-sub { font-size: 11.5px; color: var(--muted); }
-  .breast-svg { width: 100%; height: auto; max-width: 220px; aspect-ratio: 1; touch-action: manipulation; }
-  .wedge { fill: var(--surface); stroke: var(--line); stroke-width: 2; cursor: pointer; transition: fill 0.15s ease; }
-  .wedge:hover { fill: var(--rose-soft); }
-  .wedge.marked { fill: var(--rose-soft); stroke: var(--rose); }
-  .wedge.active-edit { stroke: var(--rose-deep); stroke-width: 3; }
-  .areola { fill: var(--surface); stroke: var(--line); stroke-width: 2; cursor: pointer; transition: fill 0.15s ease; }
-  .areola:hover { fill: var(--rose-soft); }
-  .areola.marked { fill: var(--rose-soft); stroke: var(--rose); }
-  .areola.active-edit { stroke: var(--rose-deep); stroke-width: 3; }
+  .diagram-sub { font-size: 11px; color: var(--muted); }
+  .breast-svg { width: 100%; height: auto; max-width: 220px; aspect-ratio: 1; touch-action: manipulation; overflow: visible; }
+  .wedge, .areola {
+    fill: var(--surface-2); stroke: var(--line); stroke-width: 2; cursor: pointer;
+    transform-box: fill-box; transform-origin: center;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .wedge, .areola { transition: fill .18s ease, stroke .18s ease, transform .15s cubic-bezier(.2,.8,.2,1); }
+  }
+  .wedge:hover, .areola:hover { fill: var(--rose-soft); }
+  .wedge.marked, .areola.marked { fill: var(--rose-soft); stroke: var(--rose); }
+  .wedge.active-edit, .areola.active-edit { stroke: var(--rose-deep); stroke-width: 3; transform: scale(1.035); }
+  .ring { fill: none; stroke: var(--rose-deep); stroke-width: 1.4; opacity: 0; pointer-events: none; }
+  .ring.show { opacity: .55; }
+  @media (prefers-reduced-motion: no-preference) {
+    .ring { transition: opacity .2s ease; }
+    .ring.show { animation: pulse-ring 1.6s ease-out infinite; }
+    @keyframes pulse-ring {
+      0% { transform: scale(1); opacity: .5; } 70% { transform: scale(1.18); opacity: 0; } 100% { opacity: 0; }
+    }
+  }
   .zone-dot { pointer-events: none; }
-  .zone-dot.dolor { fill: var(--rose); }
-  .zone-dot.hinchazon { fill: var(--amber); }
-  .zone-dot.enrojecimiento { fill: var(--coral); }
+  .zone-dot.dolor { fill: var(--rose); } .zone-dot.hinchazon { fill: var(--amber); } .zone-dot.enrojecimiento { fill: var(--coral); }
 
-  .editor { display: flex; flex-direction: column; gap: 12px; }
-  .editor-empty { color: var(--muted); font-size: 14px; text-align: center; padding: 6px 0; }
-  .editor-title { font-weight: 600; font-size: 15px; }
+  .editor { border-top: 1px dashed var(--line); margin-top: 16px; padding-top: 16px; min-height: 76px; }
+  .editor-empty {
+    color: var(--muted); font-size: 13.5px; text-align: center; padding: 10px 6px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .editor-empty svg { width: 20px; height: 20px; opacity: .5; }
+  .editor-title { font-weight: 600; font-size: 14.5px; margin-bottom: 10px; }
   .editor-title .side { color: var(--muted); font-weight: 500; }
+  @media (prefers-reduced-motion: no-preference) {
+    #editorCard > * { animation: fade-in .22s ease both; }
+    @keyframes fade-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+  }
+
   .pill-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .pill {
     border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
-    border-radius: 999px; padding: 8px 14px; font-size: 13.5px; font-weight: 500; cursor: pointer;
+    border-radius: 999px; padding: 8px 14px 8px 10px; font-size: 13.5px; font-weight: 500; cursor: pointer;
     display: flex; align-items: center; gap: 7px; font-family: var(--font-body);
   }
-  .pill .dot { width: 9px; height: 9px; border-radius: 50%; }
+  @media (prefers-reduced-motion: no-preference) { .pill { transition: background .15s ease, border-color .15s ease, transform .1s ease; } .pill:active { transform: scale(.96); } }
+  .pill .mark { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--line); display: flex; align-items: center; justify-content: center; flex: none; }
+  .pill .mark svg { width: 10px; height: 10px; opacity: 0; stroke: #fff; stroke-width: 3; }
   .pill[aria-pressed="true"] { border-color: transparent; color: #fff; }
-  .pill[aria-pressed="true"].dolor { background: var(--rose); }
-  .pill[aria-pressed="true"].hinchazon { background: var(--amber); }
-  .pill[aria-pressed="true"].enrojecimiento { background: var(--coral); }
-  .pill[aria-pressed="true"] .dot { background: #fff; }
+  .pill[aria-pressed="true"].dolor { background: var(--rose); } .pill[aria-pressed="true"].dolor .mark { border-color: #fff; }
+  .pill[aria-pressed="true"].hinchazon { background: var(--amber); } .pill[aria-pressed="true"].hinchazon .mark { border-color: #fff; }
+  .pill[aria-pressed="true"].enrojecimiento { background: var(--coral); } .pill[aria-pressed="true"].enrojecimiento .mark { border-color: #fff; }
+  .pill[aria-pressed="true"] .mark svg { opacity: 1; }
 
-  .summary-list { display: flex; flex-direction: column; gap: 10px; }
-  .summary-empty { color: var(--muted); font-size: 14px; text-align: center; padding: 8px 0; }
+  .summary-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .summary-head .title { font-weight: 600; font-size: 15px; }
+  .inline-reset { border: none; background: none; color: var(--muted); font-size: 12.5px; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; font-family: var(--font-body); }
+  .inline-reset:hover { color: var(--rose-deep); }
+
+  .summary-list { display: flex; flex-direction: column; gap: 9px; }
+  .summary-empty { color: var(--muted); font-size: 13.5px; text-align: center; padding: 10px 0; }
   .summary-row {
     display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
-    padding: 11px 13px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg);
+    padding: 11px 13px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2);
   }
+  @media (prefers-reduced-motion: no-preference) { .summary-row { animation: fade-in .2s ease both; } }
   .summary-row .meta { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
   .summary-row .zone-name { font-size: 13.5px; font-weight: 600; }
   .summary-row .zone-name .side { color: var(--muted); font-weight: 500; }
@@ -118,67 +174,82 @@
     border: none; background: none; color: var(--muted); font-size: 12px; cursor: pointer;
     text-decoration: underline; text-underline-offset: 2px; flex: none; font-family: var(--font-body);
   }
+  .clear-btn:hover { color: var(--coral); }
 
+  .details-fields { display: flex; flex-direction: column; gap: 14px; margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }
   label.field-label { font-size: 12.5px; font-weight: 600; color: var(--muted); display: block; margin-bottom: 6px; }
   select, textarea {
     width: 100%; border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px;
     font-family: var(--font-body); font-size: 14px; background: var(--surface); color: var(--ink);
   }
-  textarea { resize: vertical; min-height: 64px; }
+  select:focus, textarea:focus { outline: 2px solid var(--rose); outline-offset: 1px; }
+  textarea { resize: vertical; min-height: 60px; }
 
-  .actions { display: flex; flex-direction: column; gap: 10px; }
+  .send-bar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(10px);
+    border-top: 1px solid var(--line); box-shadow: var(--shadow-float);
+    padding: 12px max(16px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+    transform: translateY(100%); opacity: 0; pointer-events: none;
+  }
+  @media (prefers-reduced-motion: no-preference) { .send-bar { transition: transform .25s cubic-bezier(.2,.8,.2,1), opacity .25s ease; } }
+  .send-bar.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+  .send-bar-inner { max-width: 560px; margin: 0 auto; display: flex; gap: 10px; align-items: center; }
   .btn-send {
-    display: flex; align-items: center; justify-content: center; gap: 9px;
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 9px;
     background: var(--rose); color: #fff; text-decoration: none; font-weight: 600; font-size: 14.5px;
     padding: 13px; border-radius: 12px; border: none; cursor: pointer; font-family: var(--font-body);
   }
-  .btn-send svg { width: 18px; height: 18px; flex: none; }
-  .btn-reset {
-    background: none; border: 1.5px solid var(--line); color: var(--muted); font-weight: 600; font-size: 13.5px;
-    padding: 10px; border-radius: 12px; cursor: pointer; font-family: var(--font-body);
-  }
-  .send-note { font-size: 12px; color: var(--muted); text-align: center; }
+  @media (prefers-reduced-motion: no-preference) { .btn-send { transition: background .15s ease, transform .1s ease; } .btn-send:active { transform: scale(.98); } }
+  .btn-send:hover { background: var(--rose-deep); }
+  .btn-send svg { width: 17px; height: 17px; flex: none; }
 
-  .footnote { font-size: 12px; color: var(--muted); text-align: center; line-height: 1.6; }
+  .footnote { font-size: 11.5px; color: var(--muted); text-align: center; line-height: 1.6; padding-top: 4px; }
 </style>
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Archivo:wght@400;500;600;700&display=swap">
 
-<div class="wrap">
-  <div>
+<div class="wrap" id="wrap">
+  <div class="intro-in d1">
     <div class="eyebrow">Antes de tu cita</div>
     <h1>Pre-Chequeo Mamario</h1>
-    <p class="lede">Toca la zona donde sientes algo distinto y marca qué notas. Al final puedes mandarle el resumen a la Dra. Adjounian por WhatsApp antes de tu consulta.</p>
+    <p class="lede">Marca lo que sientes en el dibujo y arma un resumen claro para la Dra. Adjounian antes de tu consulta.</p>
   </div>
 
-  <div class="disclaimer">
+  <div class="steps intro-in d2">
+    <div class="step"><span class="num">1</span><span class="txt">Toca la zona donde sientes algo</span></div>
+    <div class="step"><span class="num">2</span><span class="txt">Marca el o los síntomas</span></div>
+    <div class="step"><span class="num">3</span><span class="txt">Envía el resumen por WhatsApp</span></div>
+  </div>
+
+  <div class="disclaimer intro-in d3">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-    <div><strong>Esto no es un diagnóstico.</strong> Es una guía para ordenar lo que sientes antes de tu consulta — el examen clínico lo hace la Dra. Si el dolor es fuerte o el cambio fue repentino, escríbenos ya mismo en vez de esperar a tu cita.</div>
+    <div><strong>Esto no es un diagnóstico.</strong> Es una guía para preparar tu consulta — el examen clínico lo hace la Dra. Si el dolor es fuerte o el cambio fue repentino, escríbenos ya mismo en vez de esperar a tu cita.</div>
   </div>
 
-  <div class="card">
-    <div class="legend" style="margin-bottom:16px;">
-      <span><span class="dot" style="background:var(--rose)"></span>Dolor</span>
-      <span><span class="dot" style="background:var(--amber)"></span>Hinchazón</span>
-      <span><span class="dot" style="background:var(--coral)"></span>Enrojecimiento</span>
+  <div class="card intro-in d3">
+    <div class="instrument-head">
+      <div class="legend">
+        <span><span class="dot" style="background:var(--rose)"></span>Dolor</span>
+        <span><span class="dot" style="background:var(--amber)"></span>Hinchazón</span>
+        <span><span class="dot" style="background:var(--coral)"></span>Enrojecimiento</span>
+      </div>
+      <span class="counter-chip" id="counterChip">0 zonas</span>
     </div>
 
     <div class="diagrams" id="diagrams"></div>
-  </div>
 
-  <div class="card editor" id="editorCard">
-    <div class="editor-empty" id="editorEmpty">Toca una zona en el dibujo de arriba para marcar un síntoma ahí.</div>
+    <div class="editor" id="editorCard"></div>
   </div>
 
   <div class="card">
-    <div class="editor-title" style="margin-bottom:12px;">Resumen</div>
-    <div class="summary-list" id="summaryList">
-      <div class="summary-empty">Todavía no marcaste ninguna zona.</div>
+    <div class="summary-head">
+      <div class="title">Resumen</div>
+      <button class="inline-reset" id="resetBtn" type="button" hidden>Reiniciar mapa</button>
     </div>
-  </div>
+    <div class="summary-list" id="summaryList"></div>
 
-  <div class="card" id="detailsCard" hidden>
-    <div style="display:flex; flex-direction:column; gap:14px;">
+    <div class="details-fields" id="detailsFields" hidden>
       <div>
         <label class="field-label" for="since">¿Hace cuánto lo notas?</label>
         <select id="since">
@@ -196,16 +267,16 @@
     </div>
   </div>
 
-  <div class="actions" id="actions" hidden>
+  <p class="footnote">Tus marcas solo quedan en este dispositivo. Nada se guarda ni se envía hasta que tú misma lo mandes por WhatsApp.<br>Consultorio de la Dra. María Fernanda Adjounian Correa — Cirugía General y Mastología.</p>
+</div>
+
+<div class="send-bar" id="sendBar">
+  <div class="send-bar-inner">
     <a class="btn-send" id="sendBtn" href="#" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.6 6.3A8.8 8.8 0 0 0 4 17.3L3 22l4.8-1a8.8 8.8 0 0 0 13.4-7.5c0-2.4-.9-4.6-2.6-6.2ZM12 20.2a7 7 0 0 1-3.6-1l-.3-.1-2.7.6.6-2.6-.2-.3A7.1 7.1 0 1 1 19 11.2 7 7 0 0 1 12 20.2Zm3.9-5.3c-.2-.1-1.3-.6-1.5-.7-.2-.1-.3-.1-.5.1l-.7.8c-.1.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5l.4-.4c.1-.1.2-.3.2-.4.1-.1 0-.3 0-.4l-.7-1.6c-.2-.4-.3-.3-.5-.3h-.4c-.1 0-.4.1-.6.3-.2.2-.8.8-.8 1.9s.8 2.2.9 2.3c.1.2 1.6 2.5 4 3.4.5.2 1 .3 1.3.4.5.2 1 .1 1.3.1.4-.1 1.3-.5 1.5-1 .2-.5.2-.9.1-1l-.4-.2Z"/></svg>
       Enviar resumen por WhatsApp
     </a>
-    <button class="btn-reset" id="resetBtn" type="button">Reiniciar mapa</button>
-    <div class="send-note">Esto abre WhatsApp con el mensaje ya escrito — revísalo antes de enviarlo.</div>
   </div>
-
-  <p class="footnote">Tus marcas solo quedan en este dispositivo. Nada se guarda ni se envía hasta que tú misma lo mandes por WhatsApp.<br>Consultorio de la Dra. María Fernanda Adjounian Correa — Cirugía General y Mastología.</p>
 </div>
 
 <script>
@@ -218,7 +289,6 @@
     { key: "enrojecimiento", label: "Enrojecimiento" }
   ];
 
-  // Quadrant geometry shared by both diagrams: a + split circle (4 pie wedges) plus a center areola circle.
   var WEDGE_PATHS = {
     tr: "M100,100 L100,8 A92,92 0 0 1 192,100 Z",
     br: "M100,100 L192,100 A92,92 0 0 1 100,192 Z",
@@ -226,8 +296,8 @@
     tl: "M100,100 L8,100 A92,92 0 0 1 100,8 Z"
   };
   var WEDGE_DOT_POS = { tr: [136, 64], br: [136, 136], bl: [64, 136], tl: [64, 64] };
+  var WEDGE_RING_CENTER = { tr: [146, 54], br: [146, 146], bl: [54, 146], tl: [54, 54] };
 
-  // "externo" = away from the sternum, "inferior/superior" independent of side.
   var SIDES = [
     {
       side: "izq", title: "Mama izquierda", sub: "lado del corazón",
@@ -247,55 +317,48 @@
     "centro": "Pezón y areola"
   };
 
-  // Build the full zone list up front: { id, side, sideTitle, quadrant, label }
   var ZONES = [];
   SIDES.forEach(function (s) {
     Object.keys(s.quadrants).forEach(function (wedgeKey) {
       var quadrant = s.quadrants[wedgeKey];
-      ZONES.push({
-        id: s.side + "-" + quadrant, side: s.side, sideTitle: s.title, wedgeKey: wedgeKey,
-        quadrant: quadrant, label: QUADRANT_LABEL[quadrant]
-      });
+      ZONES.push({ id: s.side + "-" + quadrant, side: s.side, sideTitle: s.title, wedgeKey: wedgeKey, quadrant: quadrant, label: QUADRANT_LABEL[quadrant] });
     });
-    ZONES.push({
-      id: s.side + "-centro", side: s.side, sideTitle: s.title, wedgeKey: "centro",
-      quadrant: "centro", label: QUADRANT_LABEL.centro
-    });
+    ZONES.push({ id: s.side + "-centro", side: s.side, sideTitle: s.title, wedgeKey: "centro", quadrant: "centro", label: QUADRANT_LABEL.centro });
   });
 
   var state = { marks: {}, activeZone: null, since: "", note: "" };
 
   function loadState() {
     try {
-      var raw = localStorage.getItem("prechequeo-mamario-v1");
+      var raw = localStorage.getItem("prechequeo-mamario-v2");
       if (!raw) return;
       var saved = JSON.parse(raw);
       if (saved && typeof saved === "object") {
-        state.marks = saved.marks || {};
-        state.since = saved.since || "";
-        state.note = saved.note || "";
+        state.marks = saved.marks || {}; state.since = saved.since || ""; state.note = saved.note || "";
       }
-    } catch (e) { /* private window / blocked storage — carry on with blank state */ }
+    } catch (e) { /* private window / blocked storage */ }
   }
   function saveState() {
-    try {
-      localStorage.setItem("prechequeo-mamario-v1", JSON.stringify({ marks: state.marks, since: state.since, note: state.note }));
-    } catch (e) { /* ignore */ }
+    try { localStorage.setItem("prechequeo-mamario-v2", JSON.stringify({ marks: state.marks, since: state.since, note: state.note })); } catch (e) { /* ignore */ }
   }
 
   function buildDiagramSVG(sideCfg) {
     var wedgesSvg = Object.keys(sideCfg.quadrants).map(function (wedgeKey) {
       var quadrant = sideCfg.quadrants[wedgeKey];
       var zoneId = sideCfg.side + "-" + quadrant;
-      return '<path class="wedge" data-zone="' + zoneId + '" d="' + WEDGE_PATHS[wedgeKey] + '"></path>';
+      var ringPos = WEDGE_RING_CENTER[wedgeKey];
+      return (
+        '<path class="wedge" data-zone="' + zoneId + '" d="' + WEDGE_PATHS[wedgeKey] + '"></path>' +
+        '<circle class="ring" data-ring-for="' + zoneId + '" cx="' + ringPos[0] + '" cy="' + ringPos[1] + '" r="16"></circle>'
+      );
     }).join("");
     var centroId = sideCfg.side + "-centro";
-    var dotsHost = '<g data-dots-for="' + sideCfg.side + '"></g>';
     return (
       '<svg class="breast-svg" viewBox="0 0 200 200" role="img" aria-label="Diagrama de ' + sideCfg.title + '">' +
         wedgesSvg +
         '<circle class="areola" data-zone="' + centroId + '" cx="100" cy="100" r="27"></circle>' +
-        dotsHost +
+        '<circle class="ring" data-ring-for="' + centroId + '" cx="100" cy="100" r="14"></circle>' +
+        '<g data-dots-for="' + sideCfg.side + '"></g>' +
       '</svg>'
     );
   }
@@ -304,19 +367,14 @@
     var host = document.getElementById("diagrams");
     host.innerHTML = SIDES.map(function (s) {
       return (
-        '<div class="diagram-box">' +
-          buildDiagramSVG(s) +
+        '<div class="diagram-box">' + buildDiagramSVG(s) +
           '<div class="diagram-label">' + s.title + '</div>' +
           (s.sub ? '<div class="diagram-sub">' + s.sub + '</div>' : '<div class="diagram-sub">&nbsp;</div>') +
         '</div>'
       );
     }).join("");
-
     host.querySelectorAll("[data-zone]").forEach(function (el) {
-      el.addEventListener("click", function () {
-        state.activeZone = el.getAttribute("data-zone");
-        render();
-      });
+      el.addEventListener("click", function () { state.activeZone = el.getAttribute("data-zone"); render(); });
     });
   }
 
@@ -327,25 +385,26 @@
     var idx = list.indexOf(symptomKey);
     if (idx === -1) list.push(symptomKey); else list.splice(idx, 1);
     if (list.length === 0) delete state.marks[zoneId]; else state.marks[zoneId] = list;
-    saveState();
-    render();
+    saveState(); render();
   }
 
   function clearZone(zoneId) {
     delete state.marks[zoneId];
     if (state.activeZone === zoneId) state.activeZone = null;
-    saveState();
-    render();
+    saveState(); render();
   }
+
+  function markedCount() { return ZONES.filter(function (z) { return zoneSymptoms(z.id).length > 0; }).length; }
 
   function renderWedgeStates() {
     document.querySelectorAll("[data-zone]").forEach(function (el) {
       var zoneId = el.getAttribute("data-zone");
-      var marked = zoneSymptoms(zoneId).length > 0;
-      el.classList.toggle("marked", marked);
+      el.classList.toggle("marked", zoneSymptoms(zoneId).length > 0);
       el.classList.toggle("active-edit", state.activeZone === zoneId);
     });
-
+    document.querySelectorAll("[data-ring-for]").forEach(function (el) {
+      el.classList.toggle("show", state.activeZone === el.getAttribute("data-ring-for"));
+    });
     document.querySelectorAll("[data-dots-for]").forEach(function (g) {
       var side = g.getAttribute("data-dots-for");
       g.innerHTML = "";
@@ -362,12 +421,21 @@
         });
       });
     });
+
+    var chip = document.getElementById("counterChip");
+    var n = markedCount();
+    chip.textContent = n + (n === 1 ? " zona marcada" : " zonas marcadas");
+    chip.classList.toggle("show", n > 0);
   }
 
   function renderEditor() {
     var card = document.getElementById("editorCard");
     if (!state.activeZone) {
-      card.innerHTML = '<div class="editor-empty" id="editorEmpty">Toca una zona en el dibujo de arriba para marcar un síntoma ahí.</div>';
+      card.innerHTML =
+        '<div class="editor-empty">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>' +
+          '<span>Toca una zona del dibujo para marcar un síntoma ahí</span>' +
+        '</div>';
       return;
     }
     var zone = ZONES.filter(function (z) { return z.id === state.activeZone; })[0];
@@ -379,10 +447,10 @@
     SYMPTOMS.forEach(function (s) {
       var pressed = active.indexOf(s.key) !== -1;
       var pill = document.createElement("button");
-      pill.type = "button";
-      pill.className = "pill " + s.key;
+      pill.type = "button"; pill.className = "pill " + s.key;
       pill.setAttribute("aria-pressed", pressed ? "true" : "false");
-      pill.innerHTML = '<span class="dot" style="background:var(--' + (s.key === "hinchazon" ? "amber" : s.key === "enrojecimiento" ? "coral" : "rose") + ')"></span>' + s.label;
+      pill.innerHTML =
+        '<span class="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7"/></svg></span>' + s.label;
       pill.addEventListener("click", function () { toggleSymptom(zone.id, s.key); });
       row.appendChild(pill);
     });
@@ -393,53 +461,46 @@
   function renderSummary() {
     var list = document.getElementById("summaryList");
     var marked = ZONES.filter(function (z) { return zoneSymptoms(z.id).length > 0; });
+    document.getElementById("resetBtn").hidden = marked.length === 0;
+    document.getElementById("detailsFields").hidden = marked.length === 0;
+
     if (!marked.length) {
       list.innerHTML = '<div class="summary-empty">Todavía no marcaste ninguna zona.</div>';
-      document.getElementById("detailsCard").hidden = true;
-      document.getElementById("actions").hidden = true;
-      return;
+    } else {
+      list.innerHTML = "";
+      marked.forEach(function (z) {
+        var row = document.createElement("div");
+        row.className = "summary-row";
+        var chips = zoneSymptoms(z.id).map(function (k) { return '<span class="chip ' + k + '">' + symptomLabel(k) + '</span>'; }).join("");
+        row.innerHTML =
+          '<div class="meta"><div class="zone-name">' + z.sideTitle + ' <span class="side">· ' + z.label.split(" — ")[0] + '</span></div>' +
+          '<div class="chips">' + chips + '</div></div>' +
+          '<button class="clear-btn" type="button">quitar</button>';
+        row.querySelector(".clear-btn").addEventListener("click", function () { clearZone(z.id); });
+        list.appendChild(row);
+      });
     }
-    document.getElementById("detailsCard").hidden = false;
-    document.getElementById("actions").hidden = false;
 
-    list.innerHTML = "";
-    marked.forEach(function (z) {
-      var row = document.createElement("div");
-      row.className = "summary-row";
-      var chips = zoneSymptoms(z.id).map(function (k) {
-        return '<span class="chip ' + k + '">' + symptomLabel(k) + '</span>';
-      }).join("");
-      row.innerHTML =
-        '<div class="meta">' +
-          '<div class="zone-name">' + z.sideTitle + ' <span class="side">· ' + z.label.split(" — ")[0] + '</span></div>' +
-          '<div class="chips">' + chips + '</div>' +
-        '</div>' +
-        '<button class="clear-btn" type="button">quitar</button>';
-      row.querySelector(".clear-btn").addEventListener("click", function () { clearZone(z.id); });
-      list.appendChild(row);
-    });
+    var bar = document.getElementById("sendBar");
+    bar.classList.toggle("show", marked.length > 0);
+    document.getElementById("wrap").classList.toggle("reserve-bar", marked.length > 0);
   }
 
   function buildWhatsAppLink() {
     var marked = ZONES.filter(function (z) { return zoneSymptoms(z.id).length > 0; });
     var lines = ["Hola, quiero compartir un pre-chequeo antes de mi consulta con la Dra. Adjounian:", ""];
     marked.forEach(function (z) {
-      var symptoms = zoneSymptoms(z.id).map(symptomLabel).join(", ");
-      lines.push("• " + z.sideTitle + ", " + z.label.split(" — ")[0] + ": " + symptoms);
+      lines.push("• " + z.sideTitle + ", " + z.label.split(" — ")[0] + ": " + zoneSymptoms(z.id).map(symptomLabel).join(", "));
     });
     lines.push("");
     if (state.since) lines.push("¿Hace cuánto lo noto?: " + state.since);
     if (state.note) lines.push("Nota adicional: " + state.note);
-    lines.push("");
-    lines.push("(Esto no es un diagnóstico, es solo para ayudar a preparar mi consulta.)");
-    var text = encodeURIComponent(lines.join("\n"));
-    return "https://wa.me/584222134426?text=" + text;
+    lines.push("", "(Esto no es un diagnóstico, es solo para ayudar a preparar mi consulta.)");
+    return "https://wa.me/584222134426?text=" + encodeURIComponent(lines.join("\n"));
   }
 
   function render() {
-    renderWedgeStates();
-    renderEditor();
-    renderSummary();
+    renderWedgeStates(); renderEditor(); renderSummary();
     var sendBtn = document.getElementById("sendBtn");
     if (sendBtn) sendBtn.href = buildWhatsAppLink();
   }
@@ -447,7 +508,7 @@
   function wireStaticControls() {
     document.getElementById("since").value = state.since;
     document.getElementById("note").value = state.note;
-    document.getElementById("since").addEventListener("change", function (e) { state.since = e.target.value; saveState(); render(); });
+    document.getElementById("since").addEventListener("change", function (e) { state.since = e.target.value; saveState(); });
     document.getElementById("note").addEventListener("input", function (e) { state.note = e.target.value; saveState(); });
     document.getElementById("note").addEventListener("change", function () { render(); });
     document.getElementById("resetBtn").addEventListener("click", function () {
@@ -457,17 +518,8 @@
     });
   }
 
-  function start() {
-    loadState();
-    renderDiagrams();
-    wireStaticControls();
-    render();
-  }
+  function start() { loadState(); renderDiagrams(); wireStaticControls(); render(); }
 
-  if (window.claude && window.claude.hot) {
-    window.claude.hot.ready ? window.claude.hot.ready(start) : start();
-  } else {
-    start();
-  }
+  if (window.claude && window.claude.hot) { window.claude.hot.ready ? window.claude.hot.ready(start) : start(); } else { start(); }
 })();
 </script>
