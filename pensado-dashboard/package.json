@@ -1,0 +1,19 @@
+{
+  "name": "pensado-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dashboard de gestion para Pensado (Mafe Correa) - pedidos, clientes, recetas, catalogo, cursos, calendario, huerto y contabilidad.",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.3.0",
+    "express": "^4.21.1",
+    "express-session": "^1.18.1",
+    "bcryptjs": "^2.4.3"
+  }
+}
