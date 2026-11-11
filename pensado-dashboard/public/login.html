@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard Pensado — Entrar</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="brand">
+      <div class="login-mark">P</div>
+      <div><h1>Dashboard Pensado</h1></div>
+    </div>
+    <p class="sub">Panel de gestión del negocio. Inicia sesión para continuar.</p>
+    <div class="login-error" id="loginError">Usuario o contraseña incorrectos.</div>
+    <form id="loginForm">
+      <div class="field">
+        <label for="loginUser">Usuario</label>
+        <input id="loginUser" autocomplete="username" />
+      </div>
+      <div class="field">
+        <label for="loginPass">Contraseña</label>
+        <input id="loginPass" type="password" autocomplete="current-password" />
+      </div>
+      <button type="submit" class="primary" style="width:100%;">Entrar</button>
+    </form>
+    <div class="demo-box">
+      <strong>Credenciales iniciales (cámbialas en las variables de entorno de Railway):</strong><br>
+      Usuario: <span class="mono">mafe</span> &nbsp;·&nbsp; Contraseña: <span class="mono">pensado2026</span>
+    </div>
+    <div class="login-security-note">
+      Este login corre en el servidor: la contraseña se verifica con una comparación segura (bcrypt) y la sesión se guarda en una cookie firmada, no en el navegador. Nadie puede ver ni saltar la verificación leyendo el código de la página.
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  const form = document.getElementById("loginForm");
+  const err = document.getElementById("loginError");
+  form.addEventListener("submit", async function(e){
+    e.preventDefault();
+    err.classList.remove("show");
+    const user = document.getElementById("loginUser").value.trim();
+    const password = document.getElementById("loginPass").value;
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user, password }),
+      });
+      if (res.ok) {
+        window.location.href = "/";
+      } else {
+        err.classList.add("show");
+      }
+    } catch (e2) {
+      err.textContent = "No se pudo conectar con el servidor. Intenta de nuevo.";
+      err.classList.add("show");
+    }
+  });
+})();
+</script>
+</body>
+</html>
