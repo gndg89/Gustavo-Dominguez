@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard Pensado</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div id="appShell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="login-mark">P</div>
+      <div class="name">Pensado</div>
+    </div>
+    <button class="navbtn active" data-view="resumen"><span class="ic">&#9679;</span> Resumen</button>
+    <button class="navbtn" data-view="pedidos"><span class="ic">&#128230;</span> Pedidos</button>
+    <button class="navbtn" data-view="clientes"><span class="ic">&#128100;</span> Clientes</button>
+    <button class="navbtn" data-view="recetas"><span class="ic">&#127859;</span> Recetas y costeo</button>
+    <button class="navbtn" data-view="catalogo"><span class="ic">&#127815;</span> Catálogo</button>
+    <button class="navbtn" data-view="cursos"><span class="ic">&#128197;</span> Cursos y reservas</button>
+    <button class="navbtn" data-view="calendario"><span class="ic">&#128198;</span> Calendario</button>
+    <button class="navbtn" data-view="huerto"><span class="ic">&#127807;</span> Huerto</button>
+    <button class="navbtn" data-view="contabilidad"><span class="ic">&#128176;</span> Contabilidad</button>
+    <button class="navbtn" data-view="ajustes"><span class="ic">&#9881;</span> Ajustes</button>
+    <div class="sidebar-foot">
+      <div class="user-chip"><div class="dot">MF</div><div><div style="font-weight:600;">Mafe Correa</div><div style="color:var(--ink-soft); font-size:.74rem;">Pensado</div></div></div>
+      <button class="ghost logout-btn" id="logoutBtn">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="wrap">
+
+      <!-- ---- Resumen ---- -->
+      <section id="view-resumen" class="view">
+        <div class="topbar">
+          <div>
+            <h1>Resumen del negocio</h1>
+            <p class="sub">Se calcula solo a partir de Pedidos y Contabilidad.</p>
+          </div>
+        </div>
+        <div class="kpi-grid" id="resumenKpis"></div>
+        <div class="two-col">
+          <div class="card">
+            <div class="section-head"><h2>Pedidos recientes</h2></div>
+            <div id="resumenPedidos"></div>
+          </div>
+          <div class="card">
+            <div class="section-head"><h2>Pendientes clave</h2></div>
+            <div id="pendientesPanel"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---- Pedidos ---- -->
+      <section id="view-pedidos" class="view" hidden>
+        <div class="topbar">
+          <div>
+            <h1>Pedidos</h1>
+            <p class="sub">Pedidos entrando por el bot de WhatsApp. Agrega, edita o elimina cualquier fila.</p>
+          </div>
+        </div>
+        <div class="card" id="pedidosPanel"></div>
+      </section>
+
+      <!-- ---- Clientes ---- -->
+      <section id="view-clientes" class="view" hidden>
+        <div class="topbar">
+          <div>
+            <h1>Clientes</h1>
+            <p class="sub">Quién escribe, por qué, y qué producto pregunta — para seguir las métricas de mercadeo.</p>
+          </div>
+        </div>
+        <div class="kpi-grid" id="clientesKpis" style="grid-template-columns:repeat(3,1fr); margin-bottom:18px;"></div>
+        <div class="card" id="clientesPanel"></div>
+      </section>
+
+      <!-- ---- Recetas y costeo ---- -->
+      <section id="view-recetas" class="view" hidden>
+        <div class="topbar">
+          <div>
+            <h1>Recetas y costeo</h1>
+            <p class="sub">Cambia el precio de un insumo y el costo y precio sugerido de cada receta se recalculan solos.</p>
+          </div>
+        </div>
+        <div class="status-banner" id="statusBanner"></div>
+        <div class="recipes-grid">
+          <section class="card panel" id="ingredientsPanel">
+            <h2>Insumos <span class="pill neutral" id="ingCount" style="display:none;"></span></h2>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Insumo</th><th class="num">Unidad</th><th class="num">Costo / unidad</th><th></th></tr></thead>
+                <tbody id="ingredientsBody"></tbody>
+              </table>
+            </div>
+            <div class="add-ing-row">
+              <input id="newIngName" placeholder="Nuevo insumo (ej. harina de almendra)" />
+              <select id="newIngUnit">
+                <option value="g">g</option><option value="kg">kg</option><option value="ml">ml</option><option value="unidad">unidad</option>
+              </select>
+              <input id="newIngCost" class="mono" type="number" step="0.001" placeholder="$ / unidad" />
+              <button class="primary" id="addIngBtn">Agregar</button>
+            </div>
+          </section>
+          <section class="card panel" id="recipesPanel">
+            <div class="section-head">
+              <h2 style="margin:0;">Recetas</h2>
+              <button class="primary" id="addRecipeBtn">+ Nueva receta</button>
+            </div>
+            <div id="recipesList"></div>
+          </section>
+        </div>
+        <footer class="note">
+          Los precios marcados <span class="pill sample">Ejemplo</span> son de muestra, en dólares, para ver cómo funciona el panel — reemplázalos por los costos reales de Pensado. Los cambios se guardan en el servidor y los ve cualquiera que abra este dashboard.
+        </footer>
+      </section>
+
+      <!-- ---- Catalogo ---- -->
+      <section id="view-catalogo" class="view" hidden>
+        <div class="topbar">
+          <div>
+            <h1>Catálogo de productos</h1>
+            <p class="sub">Líneas de producto de Pensado. Agrega, edita o elimina productos.</p>
+          </div>
+        </div>
+        <div class="cat-grid" id="catalogoGrid"></div>
+        <div class="card" id="catalogoAddCard" style="margin-top:14px;">
+          <div class="section-head"><h2>Editar catálogo</h2></div>
+          <div id="catalogoTable"></div>
+        </div>
+      </section>
+
+      <!-- ---- Cursos ---- -->
+      <section id="view-cursos" class="view" hidden>
+        <div class="topbar">
+          <div>
+            <h1>Cursos, asesorías y reservas</h1>
+            <p class="sub">Agrega, edita o elimina reservas.</p>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:14px;">
+          <div class="section-head"><h2>Próximo evento</h2></div>
+          <p style="margin:0 0 6px; font-weight:600;">El sabor de nuestros paisajes en las mieles de las abejas indígenas venezolanas</p>
+          <p style="margin:0; color:var(--ink-soft); font-size:.88rem;">15 de noviembre de 2026 · menú temático de miel con cata de miel de meliponinas. Cupo y precio todavía por confirmar con Mafe.</p>
+        </div>
+        <div class="card" id="cursosPanel"></div>
+      </section>
+
+      <!-- ---- Calendario ---- -->
+      <section id="view-calendario" class="view" hidden>
+        <div class="topbar">
+          <div>
+            <h1>Calendario de eventos y cursos</h1>
+            <p class="sub">Fuente de verdad para saber qué está abierto y en qué orden ofrecerlo. Ordenado por fecha.</p>
+          </div>
+        </div>
+        <div class="card" id="proximoEventoCard" style="margin-bottom:14px;"></div>
+        <div class="card" id="calendarioPanel"></div>
+        <footer class="note">
+          Esta tabla es la que debería consultar el bot de WhatsApp para ofrecer cursos y eventos en orden cronológico y solo los que están <span class="pill good" style="vertical-align:middle;">Abierto</span>. Todavía no hay una integración en vivo con el bot — hace falta conectarlo a esta misma base de datos (vía esta misma API) como otro paso; mientras tanto, usa esta tabla como referencia al actualizar el prompt del bot.
+        </footer>
+      </section>
+
+      <!-- ---- Huerto ---- -->
+      <section id="view-huerto" class="view" hidden>
+        <div class="topbar">
+          <div>
+            <h1>Huerto</h1>
+            <p class="sub">Flores y plantas del huerto de 7 pisos, con nombre, descripción y foto — la base del tour con QR por matero.</p>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:18px;">
+          <div class="section-head"><h2>Mapa del huerto</h2><span class="pill neutral">Piso 1 arriba · piso 7 abajo</span></div>
+          <div class="huerto-map" id="huertoMap"></div>
+        </div>
+        <div class="card" id="huertoAddCard" style="margin-bottom:14px;"></div>
+        <div class="cat-grid" id="huertoGrid"></div>
+      </section>
+
+      <!-- ---- Contabilidad ---- -->
+      <section id="view-contabilidad" class="view" hidden>
+        <div class="topbar">
+          <div>
+            <h1>Contabilidad</h1>
+            <p class="sub">Ingresos y gastos (operativos, de cursos, de talleres). Agrega, edita o elimina movimientos.</p>
+          </div>
+        </div>
+        <div class="acct-grid" id="acctKpis"></div>
+        <div class="card" id="contabilidadPanel"></div>
+      </section>
+
+      <!-- ---- Ajustes ---- -->
+      <section id="view-ajustes" class="view" hidden>
+        <div class="topbar"><div><h1>Ajustes</h1></div></div>
+        <div class="card" style="margin-bottom:14px;">
+          <h2 style="margin-bottom:8px;">Sobre este login</h2>
+          <p style="color:var(--ink-soft); line-height:1.6; margin:0 0 8px;">
+            Este dashboard usa un login real de servidor: usuario y contraseña vienen de variables de entorno, la contraseña se compara con bcrypt y la sesión se guarda en una cookie firmada por el servidor, no en el navegador.
+          </p>
+          <p style="color:var(--ink-soft); line-height:1.6; margin:0;">
+            Todas las secciones se guardan en una base de datos en el servidor (SQLite en un volumen persistente de Railway), así que lo que agreguen, editen o eliminen queda ahí la próxima vez que lo abran, desde cualquier dispositivo.
+          </p>
+        </div>
+        <div class="card">
+          <h2 style="margin-bottom:8px;">Datos de ejemplo</h2>
+          <p style="color:var(--ink-soft); line-height:1.6; margin:0;">
+            Cada sección trae filas marcadas <span class="pill sample" style="vertical-align:middle;">Ejemplo</span> para mostrar cómo funciona. Edítalas o elimínalas cuando tengan datos reales.
+          </p>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script src="/js/app.js"></script>
+</body>
+</html>
