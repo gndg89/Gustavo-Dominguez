@@ -1,0 +1,1449 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard Pensado</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+/*
+  Layout: fixed login gate, then a sidebar + content shell (stacks to a
+  top tab bar under ~820px). Color: same flour-paper / za'atar-olive /
+  honey-amber system as the costing panel, so this reads as one product
+  family. Type: Fraunces (display) / Work Sans (body) / JetBrains Mono
+  (money, quantities, codes). Every list a human can add to (pedidos,
+  clientes, catálogo, reservas, contabilidad, pendientes) is a generic
+  CRUD table backed by the artifact's shared database, so rows can be
+  added and deleted everywhere, not just in Recetas.
+*/
+:root{
+  --bg:#f2eee0; --surface:#ffffff; --surface-2:#eae3cf; --surface-3:#e1d8bc;
+  --ink:#2e2a20; --ink-soft:#6b6353; --line:#ddd4bb;
+  --olive:#5b6b3c; --olive-dark:#44512c; --olive-soft:#e3e7d5;
+  --honey:#a96a1f; --honey-soft:#f1e2c6;
+  --danger:#a6402f; --danger-soft:#f4ddd6;
+  --good:#3d7a4f; --good-soft:#dcebe0;
+  --font-display:"Fraunces",Georgia,serif;
+  --font-body:"Work Sans",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#211f18; --surface:#2a2820; --surface-2:#343126; --surface-3:#3d392c;
+    --ink:#efe9d8; --ink-soft:#b4ac96; --line:#45412f;
+    --olive:#9db36c; --olive-dark:#c3d49a; --olive-soft:#333a27;
+    --honey:#e0a94f; --honey-soft:#3a331f;
+    --danger:#e0877a; --danger-soft:#3d2622;
+    --good:#7fc496; --good-soft:#243a2b;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#211f18; --surface:#2a2820; --surface-2:#343126; --surface-3:#3d392c;
+  --ink:#efe9d8; --ink-soft:#b4ac96; --line:#45412f;
+  --olive:#9db36c; --olive-dark:#c3d49a; --olive-soft:#333a27;
+  --honey:#e0a94f; --honey-soft:#3a331f;
+  --danger:#e0877a; --danger-soft:#3d2622;
+  --good:#7fc496; --good-soft:#243a2b;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--font-body);
+  min-height:100vh;
+}
+h1,h2,h3{font-family:var(--font-display); margin:0; text-wrap:balance;}
+button{font:inherit; cursor:pointer; border-radius:8px; border:1px solid transparent; padding:8px 14px; font-weight:600;}
+button.primary{background:var(--olive); color:#fff;}
+button.primary:hover{background:var(--olive-dark);}
+button.ghost{background:transparent; border-color:var(--line); color:var(--ink);}
+button.ghost:hover{border-color:var(--olive); color:var(--olive);}
+button.icon{padding:5px 8px; font-size:.8rem; font-weight:500;}
+button:disabled{opacity:.5; cursor:not-allowed;}
+input,select{font:inherit; color:inherit; background:var(--surface-2); border:1px solid var(--line); border-radius:6px; padding:7px 9px; width:100%;}
+input:focus,select:focus{outline:2px solid var(--olive); outline-offset:1px;}
+.mono{font-family:var(--font-mono);}
+.pill{display:inline-flex; align-items:center; gap:4px; font-size:.68rem; font-weight:700; letter-spacing:.03em; text-transform:uppercase; padding:3px 9px; border-radius:999px;}
+.pill.sample{color:var(--honey); background:var(--honey-soft);}
+.pill.good{color:var(--good); background:var(--good-soft);}
+.pill.warn{color:var(--danger); background:var(--danger-soft);}
+.pill.neutral{color:var(--ink-soft); background:var(--surface-3);}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px;}
+[hidden]{display:none!important;}
+
+/* ---------- Login ---------- */
+#loginScreen{
+  min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
+}
+.login-card{
+  width:100%; max-width:380px; background:var(--surface); border:1px solid var(--line);
+  border-radius:16px; padding:28px 26px; box-shadow:0 12px 30px -16px rgba(0,0,0,.25);
+}
+.login-card .brand{display:flex; align-items:center; gap:10px; margin-bottom:18px;}
+.login-mark{width:40px; height:40px; border-radius:10px; background:var(--olive-soft); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; color:var(--olive-dark); font-size:1.2rem;}
+.login-card h1{font-size:1.4rem; margin-bottom:2px;}
+.login-card p.sub{color:var(--ink-soft); font-size:.88rem; margin:0 0 20px;}
+.field{margin-bottom:12px;}
+.field label{display:block; font-size:.78rem; font-weight:600; color:var(--ink-soft); margin-bottom:4px;}
+.login-error{display:none; color:var(--danger); background:var(--danger-soft); border-radius:8px; padding:8px 10px; font-size:.82rem; margin-bottom:12px;}
+.login-error.show{display:block;}
+.demo-box{margin-top:16px; background:var(--surface-2); border:1px dashed var(--line); border-radius:10px; padding:10px 12px; font-size:.78rem; color:var(--ink-soft); line-height:1.5;}
+.demo-box strong{color:var(--ink);}
+.login-security-note{margin-top:14px; font-size:.72rem; color:var(--ink-soft); line-height:1.5;}
+
+/* ---------- Shell ---------- */
+#appShell{display:none; min-height:100vh;}
+#appShell.show{display:flex;}
+.sidebar{
+  width:220px; flex:0 0 220px; background:var(--surface); border-right:1px solid var(--line);
+  padding:18px 14px; display:flex; flex-direction:column; gap:4px; overflow-y:auto;
+}
+.sidebar .brand{display:flex; align-items:center; gap:9px; padding:6px 8px 16px;}
+.sidebar .brand .login-mark{width:32px; height:32px; font-size:1rem;}
+.sidebar .brand .name{font-family:var(--font-display); font-weight:700; font-size:1.05rem;}
+.navbtn{
+  display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:9px;
+  color:var(--ink-soft); font-weight:600; font-size:.88rem; text-align:left; border:none; background:none;
+}
+.navbtn .ic{width:18px; text-align:center;}
+.navbtn:hover{background:var(--surface-2); color:var(--ink);}
+.navbtn.active{background:var(--olive-soft); color:var(--olive-dark);}
+.sidebar-foot{margin-top:auto; padding-top:12px; border-top:1px solid var(--line);}
+.user-chip{display:flex; align-items:center; gap:8px; padding:8px; border-radius:9px; font-size:.82rem;}
+.user-chip .dot{width:30px; height:30px; border-radius:50%; background:var(--surface-3); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.8rem; color:var(--ink-soft);}
+.logout-btn{width:100%; margin-top:6px; justify-content:flex-start;}
+
+.main{flex:1; min-width:0; padding:22px 26px 60px; overflow-x:hidden;}
+.main .wrap{max-width:1080px; margin:0 auto;}
+.topbar{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:20px; flex-wrap:wrap;}
+.topbar h1{font-size:clamp(1.4rem,1.1rem+1.2vw,1.9rem);}
+.topbar p.sub{color:var(--ink-soft); margin:4px 0 0; font-size:.92rem;}
+
+/* mobile */
+@media (max-width:820px){
+  #appShell.show{flex-direction:column;}
+  .sidebar{width:100%; flex:none; flex-direction:row; align-items:center; overflow-x:auto; overflow-y:visible; padding:10px 12px; gap:8px; border-right:none; border-bottom:1px solid var(--line);}
+  .sidebar .brand{padding:0 8px; flex:0 0 auto;}
+  .sidebar-foot{display:none;}
+  .navbtn{flex:0 0 auto; white-space:nowrap;}
+  .main{padding:16px 14px 50px;}
+}
+
+/* ---------- Resumen ---------- */
+.kpi-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px;}
+@media (max-width:760px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+.kpi .label{font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-soft); font-weight:700;}
+.kpi .value{font-family:var(--font-mono); font-size:1.5rem; font-weight:600; color:var(--olive-dark); margin-top:4px;}
+.kpi .delta{font-size:.76rem; margin-top:4px; font-weight:600; color:var(--ink-soft);}
+.two-col{display:grid; grid-template-columns:1.3fr 1fr; gap:16px; align-items:start;}
+@media (max-width:900px){.two-col{grid-template-columns:1fr;}}
+.list-row{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 0; border-top:1px solid var(--line);}
+.list-row:first-child{border-top:none;}
+.list-row .who{font-weight:600;}
+.list-row .meta{color:var(--ink-soft); font-size:.82rem;}
+
+/* ---------- Tables ---------- */
+table{width:100%; border-collapse:collapse; font-size:.88rem;}
+th{text-align:left; font-weight:700; color:var(--ink-soft); font-size:.72rem; text-transform:uppercase; letter-spacing:.03em; padding:0 8px 8px;}
+td{padding:7px 8px; border-top:1px solid var(--line); vertical-align:middle;}
+td.num,th.num{text-align:right; font-variant-numeric:tabular-nums;}
+.table-wrap{overflow-x:auto;}
+.section-head{display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
+.empty-note{color:var(--ink-soft); font-size:.85rem; padding:10px 0;}
+.danger-step{background:transparent; color:var(--ink-soft); border-color:var(--line);}
+.danger-step.armed{background:var(--danger-soft); color:var(--danger); border-color:var(--danger);}
+.status-banner{margin-top:10px; padding:8px 12px; border-radius:8px; background:var(--honey-soft); color:var(--honey); font-size:.85rem; display:none;}
+.status-banner.show{display:block;}
+footer.note{margin-top:22px; font-size:.8rem; color:var(--ink-soft); line-height:1.6;}
+
+/* generic CRUD add-row */
+.add-row{display:grid; gap:6px; margin-top:10px; grid-template-columns:repeat(var(--cols,2),1fr) auto;}
+@media (max-width:620px){ .add-row{grid-template-columns:1fr 1fr;} }
+
+/* ---------- Catalogo ---------- */
+.cat-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:14px;}
+.cat-card{border:1px solid var(--line); border-radius:12px; padding:14px; background:var(--surface-2);}
+.cat-card .row{display:grid; grid-template-columns:1fr; gap:6px; margin-bottom:8px;}
+.cat-card .top{display:flex; justify-content:space-between; align-items:flex-start; gap:6px;}
+
+/* ---------- Recetas panel (reused) ---------- */
+.recipes-grid{display:grid; grid-template-columns:minmax(0,300px) minmax(0,1fr); gap:18px; align-items:start;}
+@media (max-width:820px){.recipes-grid{grid-template-columns:1fr;}}
+.panel h2{font-size:1.1rem; display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px;}
+.ing-row input.name{min-width:0;}
+.add-ing-row{display:grid; grid-template-columns:1fr 70px 80px auto; gap:6px; margin-top:10px;}
+@media (max-width:420px){.add-ing-row{grid-template-columns:1fr 1fr;}}
+.recipe-card{border:1px solid var(--line); border-radius:12px; padding:14px; background:var(--surface-2);}
+.recipe-card + .recipe-card{margin-top:14px;}
+.recipe-top{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:flex-start;}
+.recipe-name-field{font-family:var(--font-display); font-size:1.02rem; font-weight:600; border:none; background:transparent; padding:2px 0;}
+.recipe-name-field:focus{outline:none; border-bottom:1px solid var(--olive);}
+.recipe-meta{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px;}
+.field-sm{display:flex; flex-direction:column; gap:2px; font-size:.72rem; color:var(--ink-soft);}
+.field-sm input,.field-sm select{width:88px;}
+.cost-summary{display:flex; gap:16px; flex-wrap:wrap; margin-top:12px; padding-top:10px; border-top:1px dashed var(--line);}
+.stat{min-width:100px;}
+.stat .label{font-size:.68rem; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-soft);}
+.stat .value{font-family:var(--font-mono); font-size:1.1rem; color:var(--honey); font-weight:600;}
+.stat .value.price{color:var(--olive);}
+
+/* ---------- Huerto ---------- */
+.plant-photo{width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:8px; background:var(--surface-3); display:block; margin-bottom:8px;}
+.plant-photo-placeholder{width:100%; aspect-ratio:4/3; border-radius:8px; background:var(--surface-3); display:flex; align-items:center; justify-content:center; color:var(--ink-soft); font-size:.78rem; margin-bottom:8px;}
+.plant-fields{display:grid; gap:6px; margin-bottom:8px;}
+.plant-fields textarea{font:inherit; color:inherit; background:var(--surface-2); border:1px solid var(--line); border-radius:6px; padding:7px 9px; width:100%; min-height:56px; resize:vertical;}
+.plant-meta-row{display:grid; grid-template-columns:1fr 1fr; gap:6px;}
+.file-btn{display:inline-block; font-size:.78rem; font-weight:600; color:var(--olive-dark); cursor:pointer;}
+.add-plant-grid{display:grid; grid-template-columns:140px 1fr; gap:14px; align-items:start;}
+@media (max-width:560px){.add-plant-grid{grid-template-columns:1fr;}}
+
+/* ---------- Contabilidad ---------- */
+.acct-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:18px;}
+@media (max-width:700px){.acct-grid{grid-template-columns:1fr 1fr;}}
+.acct-grid .value.pos{color:var(--good);}
+.acct-grid .value.neg{color:var(--danger);}
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="brand">
+      <div class="login-mark">P</div>
+      <div>
+        <h1>Dashboard Pensado</h1>
+      </div>
+    </div>
+    <p class="sub">Panel de gestión del negocio. Inicia sesión con las credenciales de demostración.</p>
+    <div class="login-error" id="loginError">Usuario o contraseña incorrectos. Usa las credenciales de la caja de abajo.</div>
+    <form id="loginForm">
+      <div class="field">
+        <label for="loginUser">Usuario</label>
+        <input id="loginUser" autocomplete="username" value="mafe" />
+      </div>
+      <div class="field">
+        <label for="loginPass">Contraseña</label>
+        <input id="loginPass" type="password" autocomplete="current-password" value="pensado2026" />
+      </div>
+      <button type="submit" class="primary" style="width:100%;">Entrar</button>
+    </form>
+    <div class="demo-box">
+      <strong>Credenciales de demostración:</strong><br>
+      Usuario: <span class="mono">mafe</span> &nbsp;·&nbsp; Contraseña: <span class="mono">pensado2026</span>
+    </div>
+    <div class="login-security-note">
+      Este login es solo para probar el dashboard: la verificación corre en el navegador y cualquiera que vea el código la puede saltar. No es seguridad real. Para una versión con cuentas y datos privados de verdad hace falta un backend con autenticación — ver la nota al final del panel de Ajustes.
+    </div>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="appShell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="login-mark">P</div>
+      <div class="name">Pensado</div>
+    </div>
+    <button class="navbtn active" data-view="resumen"><span class="ic">&#9679;</span> Resumen</button>
+    <button class="navbtn" data-view="pedidos"><span class="ic">&#128230;</span> Pedidos</button>
+    <button class="navbtn" data-view="clientes"><span class="ic">&#128100;</span> Clientes</button>
+    <button class="navbtn" data-view="recetas"><span class="ic">&#127859;</span> Recetas y costeo</button>
+    <button class="navbtn" data-view="catalogo"><span class="ic">&#127815;</span> Catálogo</button>
+    <button class="navbtn" data-view="cursos"><span class="ic">&#128197;</span> Cursos y reservas</button>
+    <button class="navbtn" data-view="calendario"><span class="ic">&#128198;</span> Calendario</button>
+    <button class="navbtn" data-view="huerto"><span class="ic">&#127807;</span> Huerto</button>
+    <button class="navbtn" data-view="contabilidad"><span class="ic">&#128176;</span> Contabilidad</button>
+    <button class="navbtn" data-view="ajustes"><span class="ic">&#9881;</span> Ajustes</button>
+    <div class="sidebar-foot">
+      <div class="user-chip"><div class="dot">MF</div><div><div style="font-weight:600;">Mafe Correa</div><div style="color:var(--ink-soft); font-size:.74rem;">Pensado</div></div></div>
+      <button class="ghost logout-btn" id="logoutBtn">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="wrap">
+
+      <!-- ---- Resumen ---- -->
+      <section id="view-resumen" class="view">
+        <div class="topbar">
+          <div>
+            <h1>Resumen del negocio</h1>
+            <p class="sub">Se calcula solo a partir de Pedidos y Contabilidad. <span class="pill sample">Datos de ejemplo</span></p>
+          </div>
+        </div>
+
+        <div class="kpi-grid" id="resumenKpis"></div>
+
+        <div class="two-col">
+          <div class="card">
+            <div class="section-head"><h2>Pedidos recientes</h2></div>
+            <div id="resumenPedidos"></div>
+          </div>
+          <div class="card">
+            <div class="section-head"><h2>Pendientes clave</h2></div>
+            <div id="pendientesPanel"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---- Pedidos ---- -->
+      <section id="view-pedidos" class="view" hidden>
+        <div class="topbar">
+          <div>
+            <h1>Pedidos</h1>
+            <p class="sub">Pedidos entrando por el bot de WhatsApp. Agrega, edita o elimina cualquier fila.</p>
+          </div>
+        </div>
+        <div class="card" id="pedidosPanel"></div>
+      </section>
+
+      <!-- ---- Clientes ---- -->
+      <section id="view-clientes" class="view" hidden>
+        <div class="topbar">
+          <div>
+            <h1>Clientes</h1>
+            <p class="sub">Quién escribe, por qué, y qué producto pregunta — para seguir las métricas de mercadeo.</p>
+          </div>
+        </div>
+        <div class="kpi-grid" id="clientesKpis" style="grid-template-columns:repeat(3,1fr); margin-bottom:18px;"></div>
+        <div class="card" id="clientesPanel"></div>
+      </section>
+
+      <!-- ---- Recetas y costeo ---- -->
+      <section id="view-recetas" class="view" hidden>
+        <div class="topbar">
+          <div>
+            <h1>Recetas y costeo</h1>
+            <p class="sub">Cambia el precio de un insumo y el costo y precio sugerido de cada receta se recalculan solos.</p>
+          </div>
+        </div>
+        <div class="status-banner" id="statusBanner"></div>
+
+        <div class="recipes-grid">
+          <section class="card panel" id="ingredientsPanel">
+            <h2>Insumos <span class="pill neutral" id="ingCount" style="display:none;"></span></h2>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Insumo</th><th class="num">Unidad</th><th class="num">Costo / unidad</th><th></th></tr></thead>
+                <tbody id="ingredientsBody"></tbody>
+              </table>
+            </div>
+            <div class="add-ing-row">
+              <input id="newIngName" placeholder="Nuevo insumo (ej. harina de almendra)" />
+              <select id="newIngUnit">
+                <option value="g">g</option><option value="kg">kg</option><option value="ml">ml</option><option value="unidad">unidad</option>
+              </select>
+              <input id="newIngCost" class="mono" type="number" step="0.001" placeholder="$ / unidad" />
+              <button class="primary" id="addIngBtn">Agregar</button>
+            </div>
+          </section>
+
+          <section class="card panel" id="recipesPanel">
+            <div class="section-head">
+              <h2 style="margin:0;">Recetas</h2>
+              <button class="primary" id="addRecipeBtn">+ Nueva receta</button>
+            </div>
+            <div id="recipesList"></div>
+          </section>
+        </div>
+
+        <footer class="note">
+          Los precios marcados <span class="pill sample">Ejemplo</span> son de muestra, en dólares, para ver cómo funciona el panel — reemplázalos por los costos reales de Pensado. Los cambios se guardan automáticamente y los ve cualquiera que abra este dashboard.
+        </footer>
+      </section>
+
+      <!-- ---- Catalogo ---- -->
+      <section id="view-catalogo" class="view" hidden>
+        <div class="topbar">
+          <div>
+            <h1>Catálogo de productos</h1>
+            <p class="sub">Líneas de producto de Pensado. Agrega, edita o elimina productos. <span class="pill sample">Precios de ejemplo</span></p>
+          </div>
+        </div>
+        <div class="cat-grid" id="catalogoGrid"></div>
+        <div class="card" id="catalogoAddCard" style="margin-top:14px;"></div>
+      </section>
+
+      <!-- ---- Cursos ---- -->
+      <section id="view-cursos" class="view" hidden>
+        <div class="topbar">
+          <div>
+            <h1>Cursos, asesorías y reservas</h1>
+            <p class="sub">Agrega, edita o elimina reservas.</p>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:14px;">
+          <div class="section-head"><h2>Próximo evento</h2></div>
+          <p style="margin:0 0 6px; font-weight:600;">El sabor de nuestros paisajes en las mieles de las abejas indígenas venezolanas</p>
+          <p style="margin:0; color:var(--ink-soft); font-size:.88rem;">15 de noviembre de 2026 · menú temático de miel con cata de miel de meliponinas. Cupo y precio todavía por confirmar con Mafe.</p>
+        </div>
+        <div class="card" id="cursosPanel"></div>
+      </section>
+
+      <!-- ---- Calendario ---- -->
+      <section id="view-calendario" class="view" hidden>
+        <div class="topbar">
+          <div>
+            <h1>Calendario de eventos y cursos</h1>
+            <p class="sub">Fuente de verdad para saber qué está abierto y en qué orden ofrecerlo. Ordenado por fecha.</p>
+          </div>
+        </div>
+        <div class="card" id="proximoEventoCard" style="margin-bottom:14px;"></div>
+        <div class="card" id="calendarioPanel"></div>
+        <footer class="note">
+          Esta tabla es la que debería consultar el bot de WhatsApp para ofrecer cursos y eventos en orden cronológico y solo los que están <span class="pill good" style="vertical-align:middle;">Abierto</span>. Hoy el bot no la lee en vivo — para eso hay que conectarlo a esta misma base de datos (otro paso de desarrollo); mientras tanto, usa esta tabla como referencia al actualizar el prompt del bot.
+        </footer>
+      </section>
+
+      <!-- ---- Huerto ---- -->
+      <section id="view-huerto" class="view" hidden>
+        <div class="topbar">
+          <div>
+            <h1>Huerto</h1>
+            <p class="sub">Flores y plantas del huerto de 7 pisos, con nombre, descripción y foto — la base del tour con QR por matero.</p>
+          </div>
+        </div>
+        <div class="card" id="huertoAddCard" style="margin-bottom:14px;"></div>
+        <div class="cat-grid" id="huertoGrid"></div>
+      </section>
+
+      <!-- ---- Contabilidad ---- -->
+      <section id="view-contabilidad" class="view" hidden>
+        <div class="topbar">
+          <div>
+            <h1>Contabilidad</h1>
+            <p class="sub">Ingresos y gastos (operativos, de cursos, de talleres). Agrega, edita o elimina movimientos. <span class="pill sample">Datos de ejemplo</span></p>
+          </div>
+        </div>
+        <div class="acct-grid" id="acctKpis"></div>
+        <div class="card" id="contabilidadPanel"></div>
+      </section>
+
+      <!-- ---- Ajustes ---- -->
+      <section id="view-ajustes" class="view" hidden>
+        <div class="topbar">
+          <div><h1>Ajustes</h1></div>
+        </div>
+        <div class="card" style="margin-bottom:14px;">
+          <h2 style="margin-bottom:8px;">Sobre este login</h2>
+          <p style="color:var(--ink-soft); line-height:1.6; margin:0 0 8px;">
+            Este dashboard usa un inicio de sesión de demostración (usuario/contraseña fijos, revisados en el navegador) para que puedan empezar a usarlo y probarlo ya mismo. <strong>No es seguridad real</strong>: cualquier persona que vea el código fuente de la página puede ver o saltar la verificación, y no hay cuentas separadas por persona ni datos privados protegidos.
+          </p>
+          <p style="color:var(--ink-soft); line-height:1.6; margin:0;">
+            Para una versión con login de verdad (contraseñas con hash, sesiones seguras, permisos por persona) hace falta un servidor propio con base de datos de usuarios — eso requiere hosting y, si quieren, dominio propio. Lo podemos construir en el repositorio de GitHub cuando estén listos para ese paso.
+          </p>
+        </div>
+        <div class="card">
+          <h2 style="margin-bottom:8px;">Datos de ejemplo</h2>
+          <p style="color:var(--ink-soft); line-height:1.6; margin:0;">
+            Cada sección trae filas marcadas <span class="pill sample" style="vertical-align:middle;">Ejemplo</span> para mostrar cómo funciona. Todas las secciones se guardan en la base de datos del dashboard: lo que agreguen, editen o eliminen queda así la próxima vez que lo abran, en cualquier dispositivo que use este mismo enlace.
+          </p>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script>
+(function(){
+  const $ = (sel, root) => (root||document).querySelector(sel);
+  const $$ = (sel, root) => Array.from((root||document).querySelectorAll(sel));
+  const fmt = (n) => (Number.isFinite(n) ? n.toFixed(2) : "0.00");
+  const esc = (s) => String(s==null?"":s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+  // ---------------- Login (demo only, client-side) ----------------
+  const DEMO_USER = "mafe";
+  const DEMO_PASS = "pensado2026";
+  const SESSION_KEY = "pensado_dashboard_demo_session";
+
+  const loginScreen = $("#loginScreen");
+  const appShell = $("#appShell");
+  const loginForm = $("#loginForm");
+  const loginError = $("#loginError");
+
+  function showApp(){ loginScreen.style.display = "none"; appShell.classList.add("show"); }
+  function showLogin(){ appShell.classList.remove("show"); loginScreen.style.display = "flex"; }
+
+  try { if (sessionStorage.getItem(SESSION_KEY) === "1") showApp(); } catch(e) {}
+
+  loginForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    const u = $("#loginUser").value.trim();
+    const p = $("#loginPass").value;
+    if (u === DEMO_USER && p === DEMO_PASS) {
+      loginError.classList.remove("show");
+      try { sessionStorage.setItem(SESSION_KEY, "1"); } catch(e) {}
+      showApp();
+    } else { loginError.classList.add("show"); }
+  });
+  $("#logoutBtn").addEventListener("click", function(){
+    try { sessionStorage.removeItem(SESSION_KEY); } catch(e) {}
+    showLogin();
+  });
+
+  // ---------------- Navigation ----------------
+  const views = ["resumen","pedidos","clientes","recetas","catalogo","cursos","calendario","huerto","contabilidad","ajustes"];
+  function setView(name){
+    views.forEach(v => { $("#view-"+v).hidden = (v !== name); });
+    $$(".navbtn").forEach(b => b.classList.toggle("active", b.dataset.view === name));
+  }
+  $$(".navbtn").forEach(b => b.addEventListener("click", () => setView(b.dataset.view)));
+
+  // ================= db wiring (shared, persisted) =================
+  const statusBanner = $("#statusBanner");
+  function showBanner(msg){ statusBanner.textContent = msg; statusBanner.classList.add("show"); }
+
+  let db = null;
+  let canWrite = true;
+  function handleWriteError(e){
+    if (e && e.code === "invalid_argument"){
+      canWrite = false;
+      showBanner("Esta vista es de solo lectura para tu nivel de acceso.");
+      renderIngredients(); renderRecipes(); renderHuerto();
+      Object.values(crudTables).forEach(t => t.render());
+    }
+  }
+
+  // ================= generic CRUD table engine =================
+  // Powers Pedidos, Clientes, Catálogo, Cursos/Reservas, Contabilidad y Pendientes.
+  const crudTables = {}; // name -> { rows, render }
+
+  function makeCrud(opts){
+    const { name, columns, seed, renderExtra, sort } = opts;
+    const state = { rows: [] };
+
+    function fieldHtml(col, value){
+      if (col.type === "select"){
+        return '<select data-k="'+col.key+'">' + col.options.map(o =>
+          '<option value="'+esc(o)+'"'+(o===value?" selected":"")+'>'+esc(o)+'</option>'
+        ).join("") + '</select>';
+      }
+      if (col.type === "number"){
+        return '<input class="mono" data-k="'+col.key+'" type="number" step="0.01" value="'+esc(value==null?"":value)+'" />';
+      }
+      return '<input data-k="'+col.key+'" type="text" value="'+esc(value==null?"":value)+'" />';
+    }
+
+    function mount(containerEl){
+      function renderAddRow(){
+        const wrap = document.createElement("div");
+        wrap.className = "add-row";
+        wrap.style.setProperty("--cols", columns.length);
+        columns.forEach(col => {
+          if (col.type === "select"){
+            const sel = document.createElement("select");
+            sel.dataset.addk = col.key;
+            col.options.forEach(o => { const op=document.createElement("option"); op.value=o; op.textContent=o; sel.appendChild(op); });
+            wrap.appendChild(sel);
+          } else {
+            const inp = document.createElement("input");
+            inp.dataset.addk = col.key;
+            inp.type = col.type === "number" ? "number" : "text";
+            if (col.type === "number") inp.step = "0.01";
+            inp.placeholder = col.label;
+            wrap.appendChild(inp);
+          }
+        });
+        const btn = document.createElement("button");
+        btn.className = "primary";
+        btn.textContent = "Agregar";
+        btn.disabled = !canWrite;
+        btn.addEventListener("click", async () => {
+          if (!canWrite) return;
+          const doc = { sample: false };
+          let hasAny = false;
+          columns.forEach(col => {
+            const el = wrap.querySelector('[data-addk="'+col.key+'"]');
+            let v = el.value;
+            if (col.type === "number") v = parseFloat(v) || 0; else v = (v||"").trim();
+            if (v) hasAny = true;
+            doc[col.key] = v;
+          });
+          if (!hasAny) return;
+          try {
+            await db.collection(name).add(doc);
+            columns.forEach(col => { const el = wrap.querySelector('[data-addk="'+col.key+'"]'); if (col.type!=="select") el.value=""; });
+          } catch(e){ handleWriteError(e); }
+        });
+        wrap.appendChild(btn);
+        return wrap;
+      }
+
+      function render(){
+        containerEl.innerHTML = "";
+        const table = document.createElement("table");
+        const thead = document.createElement("thead");
+        thead.innerHTML = "<tr>" + columns.map(c => '<th'+(c.type==="number"?' class="num"':'')+'>'+esc(c.label)+'</th>').join("") + "<th></th></tr>";
+        table.appendChild(thead);
+        const tbody = document.createElement("tbody");
+
+        if (!state.rows.length){
+          const tr = document.createElement("tr");
+          tr.innerHTML = '<td colspan="'+(columns.length+1)+'" class="empty-note">Todavía no hay filas. Agrega la primera abajo.</td>';
+          tbody.appendChild(tr);
+        }
+
+        state.rows.forEach(row => {
+          const tr = document.createElement("tr");
+          columns.forEach(col => {
+            const td = document.createElement("td");
+            if (col.type === "number") td.className = "num";
+            td.innerHTML = fieldHtml(col, row[col.key]);
+            const field = td.querySelector("[data-k]");
+            field.disabled = !canWrite;
+            field.addEventListener("change", () => {
+              let v = field.value;
+              if (col.type === "number") v = parseFloat(v) || 0;
+              const patch = {}; patch[col.key] = v; patch.sample = false;
+              db.collection(name).doc(row.id).update(patch).catch(handleWriteError);
+            });
+            if (col.money) td.innerHTML += ' <span class="mono" style="color:var(--ink-soft); font-size:.78rem;">$</span>';
+            tr.appendChild(td);
+          });
+          const delTd = document.createElement("td");
+          const delBtn = document.createElement("button");
+          delBtn.className = "icon danger-step";
+          delBtn.textContent = "Eliminar";
+          delBtn.disabled = !canWrite;
+          let armed = false;
+          delBtn.addEventListener("click", () => {
+            if (!armed){
+              armed = true; delBtn.classList.add("armed"); delBtn.textContent = "Confirmar";
+              setTimeout(() => { armed=false; delBtn.classList.remove("armed"); delBtn.textContent="Eliminar"; }, 3000);
+            } else {
+              db.collection(name).doc(row.id).delete().catch(handleWriteError);
+            }
+          });
+          delTd.appendChild(delBtn);
+          if (row.sample){
+            const tag = document.createElement("span");
+            tag.className = "pill sample"; tag.style.marginRight = "6px"; tag.textContent = "Ejemplo";
+            delTd.prepend(tag);
+          }
+          tr.appendChild(delTd);
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+
+        const wrap = document.createElement("div");
+        wrap.className = "table-wrap";
+        wrap.appendChild(table);
+        containerEl.appendChild(wrap);
+        containerEl.appendChild(renderAddRow());
+        if (renderExtra) renderExtra(state.rows);
+      }
+
+      crudTables[name] = {
+        get rows(){ return state.rows; },
+        render,
+      };
+
+      db.collection(name).onSnapshot((snap) => {
+        state.rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        if (sort) state.rows.sort(sort);
+        render();
+        recomputeMetrics();
+      }, (err) => { if (err.code === "invalid_argument") return; });
+
+      (async () => {
+        const snap = await db.collection(name).limit(1).get();
+        if (snap.empty && seed && seed.length){
+          for (const row of seed) await db.collection(name).add(Object.assign({ sample: true }, row));
+        }
+      })().catch(() => {});
+
+      render();
+    }
+
+    return { mount };
+  }
+
+  // ---------------- Pedidos ----------------
+  const pedidosCols = [
+    { key:"cliente", label:"Cliente", type:"text" },
+    { key:"producto", label:"Producto", type:"text" },
+    { key:"monto", label:"Monto", type:"number", money:true },
+    { key:"pago", label:"Pago", type:"select", options:["Transferencia","Pago móvil","Efectivo"] },
+    { key:"estado", label:"Estado", type:"select", options:["Por aprobar","Pagado","Atendido por Mafe"] },
+  ];
+  const pedidosSeed = [
+    { cliente:"Gabriela R.", producto:"Ponqué de dátiles y nueces", monto:18, pago:"Transferencia", estado:"Por aprobar" },
+    { cliente:"Luis Peña", producto:"Galletas nutritivas (x6) + Hummus", monto:14, pago:"Pago móvil", estado:"Pagado" },
+    { cliente:"Marianela Soto", producto:"Pan de sandwich libre de gluten", monto:9, pago:"Efectivo", estado:"Atendido por Mafe" },
+    { cliente:"Carlos Uzcátegui", producto:"Mermelada mini x4 (regalo corporativo)", monto:22, pago:"Transferencia", estado:"Pagado" },
+    { cliente:"Andreína Paz", producto:"Kibbe congelado (x10)", monto:16, pago:"Pago móvil", estado:"Por aprobar" },
+    { cliente:"José Linares", producto:"Masa de pizza pre-horneada (x2)", monto:7, pago:"Efectivo", estado:"Atendido por Mafe" },
+  ];
+  const pedidosCrud = makeCrud({ name:"pedidos", columns:pedidosCols, seed:pedidosSeed });
+
+  // ---------------- Clientes ----------------
+  const clientesCols = [
+    { key:"nombre", label:"Cliente", type:"text" },
+    { key:"contacto", label:"Contacto (tel./IG)", type:"text" },
+    { key:"interes", label:"Por qué escribió / interés", type:"text" },
+    { key:"producto", label:"Producto que preguntó", type:"text" },
+  ];
+  const clientesSeed = [
+    { nombre:"Gabriela R.", contacto:"+58 412-555-0133", interes:"Vio el post del ponqué de dátiles en IG", producto:"Ponqué de dátiles y nueces" },
+    { nombre:"Luis Peña", contacto:"+58 414-555-0187", interes:"Busca opciones libres de gluten para su hija", producto:"Galletas nutritivas" },
+    { nombre:"Carolina M.", contacto:"@carito.ve", interes:"Quiere aprender a decorar postres", producto:"Taller de plating" },
+    { nombre:"Carlos Uzcátegui", contacto:"+58 416-555-0120", interes:"Regalo corporativo de fin de año", producto:"Mermelada mini degustación" },
+    { nombre:"Andreína Paz", contacto:"+58 412-555-0199", interes:"Repite pedido, le gustó el kibbe la vez pasada", producto:"Kibbe congelado" },
+  ];
+  const clientesCrud = makeCrud({ name:"clientes", columns:clientesCols, seed:clientesSeed });
+
+  // ---------------- Catálogo ----------------
+  const catalogoCols = [
+    { key:"nombre", label:"Producto", type:"text" },
+    { key:"linea", label:"Línea", type:"text" },
+    { key:"precio", label:"Precio", type:"number", money:true },
+    { key:"etiqueta", label:"Etiqueta", type:"select", options:["Libre de gluten","Sin confirmar","Ninguna"] },
+  ];
+  const catalogoSeed = [
+    { nombre:"Flores y hojas comestibles", linea:"Garnish para alta cocina", precio:6, etiqueta:"Ninguna" },
+    { nombre:"Ponqué de dátiles y nueces", linea:"Panadería / repostería", precio:18, etiqueta:"Libre de gluten" },
+    { nombre:"Galletas nutritivas", linea:"Panadería / repostería", precio:8, etiqueta:"Libre de gluten" },
+    { nombre:"Pan de sandwich", linea:"Panadería", precio:6, etiqueta:"Libre de gluten" },
+    { nombre:"Pita", linea:"Panadería árabe", precio:5, etiqueta:"Sin confirmar" },
+    { nombre:"Masa de pizza pre-horneada", linea:"Panadería árabe", precio:5, etiqueta:"Sin confirmar" },
+    { nombre:"Tortas libres de gluten", linea:"Por encargo", precio:35, etiqueta:"Libre de gluten" },
+    { nombre:"Hummus", linea:"Cocina árabe", precio:5, etiqueta:"Ninguna" },
+    { nombre:"Kibbe congelado", linea:"Cocina árabe", precio:7, etiqueta:"Libre de gluten" },
+    { nombre:"Falafel congelado", linea:"Cocina árabe", precio:7, etiqueta:"Sin confirmar" },
+    { nombre:"Mermelada mini degustación", linea:"Mermeladas gourmet", precio:2, etiqueta:"Ninguna" },
+  ];
+  // Catálogo shown as cards, driven by the same collection as a table of its own.
+  const catalogoGrid = $("#catalogoGrid");
+  const catalogoCrud = makeCrud({
+    name:"catalogo", columns:catalogoCols, seed:catalogoSeed,
+    renderExtra: function(rows){
+      catalogoGrid.innerHTML = "";
+      rows.forEach(p => {
+        const kind = p.etiqueta === "Libre de gluten" ? "good" : (p.etiqueta === "Sin confirmar" ? "warn" : "neutral");
+        const div = document.createElement("div");
+        div.className = "cat-card";
+        div.innerHTML = '<div class="top"><h3 style="font-size:1rem;">'+esc(p.nombre)+'</h3>'+(p.sample?'<span class="pill sample">Ejemplo</span>':'')+'</div>'+
+          '<div style="color:var(--ink-soft); font-size:.78rem; margin-bottom:8px;">'+esc(p.linea||"")+'</div>'+
+          '<div class="mono" style="margin-bottom:8px; color:var(--honey); font-weight:600;">$'+fmt(p.precio||0)+'</div>'+
+          '<span class="pill '+kind+'">'+esc(p.etiqueta||"Ninguna")+'</span>';
+        catalogoGrid.appendChild(div);
+      });
+    }
+  });
+  // Mount catalogo's editable table underneath the cards (full control: add/edit/delete).
+  const catalogoAddCard = $("#catalogoAddCard");
+  catalogoAddCard.innerHTML = '<div class="section-head"><h2>Editar catálogo</h2></div><div id="catalogoTable"></div>';
+
+  // ---------------- Cursos / reservas ----------------
+  const cursosCols = [
+    { key:"quien", label:"Quién", type:"text" },
+    { key:"curso", label:"Curso / asesoría", type:"text" },
+    { key:"estado", label:"Estado", type:"select", options:["Por confirmar","Confirmado","Agendada"] },
+  ];
+  const cursosSeed = [
+    { quien:"Carolina M.", curso:"Taller de plating + visita al huerto", estado:"Por confirmar" },
+    { quien:"Grupo Farmanova (4 personas)", curso:"Evento 15 nov — menú de miel", estado:"Confirmado" },
+    { quien:"Rosana Delgado", curso:"Asesoría de registro sanitario", estado:"Agendada" },
+    { quien:"Equipo de cocina Arepa&Co", curso:"Asesoría culinaria (grupo)", estado:"Por confirmar" },
+  ];
+  const cursosCrud = makeCrud({ name:"reservas", columns:cursosCols, seed:cursosSeed });
+
+  // ---------------- Calendario de eventos y cursos ----------------
+  const eventosCols = [
+    { key:"fecha", label:"Fecha (AAAA-MM-DD)", type:"text" },
+    { key:"nombre", label:"Evento / curso", type:"text" },
+    { key:"cupo", label:"Cupo", type:"number" },
+    { key:"estado", label:"Estado", type:"select", options:["Abierto","Agotado","Cerrado"] },
+  ];
+  const eventosSeed = [
+    { fecha:"2026-11-15", nombre:"El sabor de nuestros paisajes en las mieles de las abejas indígenas venezolanas", cupo:12, estado:"Abierto" },
+    { fecha:"2026-11-22", nombre:"Taller de plating + visita al huerto", cupo:8, estado:"Abierto" },
+    { fecha:"2026-12-06", nombre:"Curso de cata de miel de meliponinas", cupo:10, estado:"Cerrado" },
+  ];
+  const eventosSort = (a,b) => (a.fecha||"").localeCompare(b.fecha||"");
+  const proximoEventoCard = $("#proximoEventoCard");
+  const eventosCrud = makeCrud({
+    name:"eventos", columns:eventosCols, seed:eventosSeed, sort:eventosSort,
+    renderExtra: function(rows){
+      const hoy = new Date().toISOString().slice(0,10);
+      const proximo = rows.find(e => e.estado === "Abierto" && e.fecha >= hoy) || rows.find(e => e.estado === "Abierto");
+      if (!proximo){
+        proximoEventoCard.innerHTML = '<div class="section-head"><h2>Próximo evento abierto</h2></div><p class="empty-note">No hay eventos abiertos en este momento.</p>';
+        return;
+      }
+      proximoEventoCard.innerHTML = '<div class="section-head"><h2>Próximo evento abierto</h2><span class="pill good">Abierto</span></div>'+
+        '<p style="margin:0 0 4px; font-weight:600;">'+esc(proximo.nombre)+'</p>'+
+        '<p style="margin:0; color:var(--ink-soft); font-size:.88rem;">'+esc(proximo.fecha)+' · cupo: '+esc(proximo.cupo)+'</p>';
+    }
+  });
+
+  // ---------------- Contabilidad ----------------
+  const acctCols = [
+    { key:"fecha", label:"Fecha", type:"text" },
+    { key:"tipo", label:"Tipo", type:"select", options:["Ingreso","Gasto operativo","Gasto de curso","Gasto de taller","Otro gasto"] },
+    { key:"descripcion", label:"Descripción", type:"text" },
+    { key:"monto", label:"Monto", type:"number", money:true },
+  ];
+  const acctSeed = [
+    { fecha:"2026-11-01", tipo:"Ingreso", descripcion:"Pedidos de la semana (panadería)", monto:86 },
+    { fecha:"2026-11-02", tipo:"Gasto operativo", descripcion:"Insumos: harina de almendra, dátiles, nueces", monto:34 },
+    { fecha:"2026-11-03", tipo:"Gasto de curso", descripcion:"Miel de meliponinas para el curso de cata", monto:20 },
+    { fecha:"2026-11-04", tipo:"Ingreso", descripcion:"Mermeladas mini (regalo corporativo)", monto:44 },
+    { fecha:"2026-11-05", tipo:"Gasto de taller", descripcion:"Materiales taller de plating", monto:15 },
+    { fecha:"2026-11-06", tipo:"Otro gasto", descripcion:"Empaques y etiquetas", monto:12 },
+  ];
+  const acctKpisEl = $("#acctKpis");
+  const contabilidadCrud = makeCrud({
+    name:"contabilidad", columns:acctCols, seed:acctSeed,
+    renderExtra: function(rows){
+      let ingresos=0, gastos=0, porTipo={};
+      rows.forEach(r => {
+        const m = r.monto||0;
+        if (r.tipo === "Ingreso") ingresos += m; else gastos += m;
+        porTipo[r.tipo] = (porTipo[r.tipo]||0) + m;
+      });
+      const neto = ingresos - gastos;
+      acctKpisEl.innerHTML =
+        '<div class="card kpi"><div class="label">Ingresos</div><div class="value pos">$'+fmt(ingresos)+'</div></div>'+
+        '<div class="card kpi"><div class="label">Gastos</div><div class="value neg">$'+fmt(gastos)+'</div></div>'+
+        '<div class="card kpi"><div class="label">Neto</div><div class="value '+(neto>=0?"pos":"neg")+'">$'+fmt(neto)+'</div></div>';
+    }
+  });
+
+  // ---------------- Pendientes (editable todo list) ----------------
+  const pendientesCols = [ { key:"texto", label:"Pendiente", type:"text" } ];
+  const pendientesSeed = [
+    { texto:"🔒 Confirmar si pita, masa de pizza y falafel son libres de gluten" },
+    { texto:"💰 Cargar precios reales de cada producto (hoy son de ejemplo)" },
+    { texto:"🏦 Agregar datos bancarios / pago móvil reales para el bot de pagos" },
+    { texto:"📸 Fotos reales de productos sin foto todavía" },
+    { texto:"🪴 Mapas del huerto, pisos 4 a 7, para el tour 3D" },
+  ];
+  const pendientesCrud = makeCrud({ name:"pendientes", columns:pendientesCols, seed:pendientesSeed });
+
+  // ================= Huerto (plantas con foto) =================
+  function resizeImageToDataUrl(file, maxDim, quality){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          let w = img.width, h = img.height;
+          if (w > h) { if (w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; } }
+          else { if (h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; } }
+          const canvas = document.createElement("canvas");
+          canvas.width = w; canvas.height = h;
+          canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        };
+        img.onerror = reject;
+        img.src = reader.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  let huertoRows = [];
+  const huertoGrid = $("#huertoGrid");
+  const huertoAddCard = $("#huertoAddCard");
+
+  async function updateHuerto(id, patch){ if(!canWrite) return; try{ await db.collection("huerto").doc(id).update(patch); } catch(e){ handleWriteError(e); } }
+  async function deleteHuerto(id){ if(!canWrite) return; try{ await db.collection("huerto").doc(id).delete(); } catch(e){ handleWriteError(e); } }
+
+  function renderHuerto(){
+    huertoGrid.innerHTML = "";
+    if (!huertoRows.length){
+      huertoGrid.innerHTML = '<p class="empty-note">Todavía no hay flores ni plantas. Agrega la primera arriba.</p>';
+      return;
+    }
+    huertoRows.forEach(p => {
+      const card = document.createElement("div");
+      card.className = "cat-card";
+
+      const top = document.createElement("div");
+      top.className = "top";
+      top.innerHTML = '<h3 style="font-size:1rem;">&nbsp;</h3>' + (p.sample ? '<span class="pill sample">Ejemplo</span>' : '');
+
+      if (p.foto){
+        const img = document.createElement("img");
+        img.className = "plant-photo";
+        img.src = p.foto;
+        img.alt = p.nombre || "Planta del huerto";
+        card.appendChild(img);
+      } else {
+        const ph = document.createElement("div");
+        ph.className = "plant-photo-placeholder";
+        ph.textContent = "Sin foto todavía";
+        card.appendChild(ph);
+      }
+
+      const fields = document.createElement("div");
+      fields.className = "plant-fields";
+
+      const nameInput = document.createElement("input");
+      nameInput.value = p.nombre || "";
+      nameInput.placeholder = "Nombre de la flor o planta";
+      nameInput.disabled = !canWrite;
+      nameInput.addEventListener("change", () => updateHuerto(p.id, { nombre: nameInput.value, sample:false }));
+      fields.appendChild(nameInput);
+
+      const descInput = document.createElement("textarea");
+      descInput.value = p.descripcion || "";
+      descInput.placeholder = "Descripción (científica / culinaria)";
+      descInput.disabled = !canWrite;
+      descInput.addEventListener("change", () => updateHuerto(p.id, { descripcion: descInput.value, sample:false }));
+      fields.appendChild(descInput);
+
+      const metaRow = document.createElement("div");
+      metaRow.className = "plant-meta-row";
+      const pisoInput = document.createElement("input");
+      pisoInput.type = "number"; pisoInput.min = "1"; pisoInput.max = "7";
+      pisoInput.value = p.piso || "";
+      pisoInput.placeholder = "Piso (1-7)";
+      pisoInput.disabled = !canWrite;
+      pisoInput.addEventListener("change", () => updateHuerto(p.id, { piso: parseInt(pisoInput.value)||null, sample:false }));
+      const materoInput = document.createElement("input");
+      materoInput.value = p.matero || "";
+      materoInput.placeholder = "Matero / código QR";
+      materoInput.disabled = !canWrite;
+      materoInput.addEventListener("change", () => updateHuerto(p.id, { matero: materoInput.value, sample:false }));
+      metaRow.append(pisoInput, materoInput);
+      fields.appendChild(metaRow);
+
+      card.appendChild(top);
+      card.appendChild(fields);
+
+      const actionsRow = document.createElement("div");
+      actionsRow.style.display = "flex";
+      actionsRow.style.justifyContent = "space-between";
+      actionsRow.style.gap = "6px";
+
+      const fileLabel = document.createElement("label");
+      fileLabel.className = "file-btn ghost icon";
+      fileLabel.style.border = "1px solid var(--line)";
+      fileLabel.style.borderRadius = "8px";
+      fileLabel.style.padding = "5px 8px";
+      fileLabel.textContent = p.foto ? "Cambiar foto" : "Subir foto";
+      const fileInput = document.createElement("input");
+      fileInput.type = "file"; fileInput.accept = "image/*"; fileInput.style.display = "none";
+      fileInput.disabled = !canWrite;
+      fileInput.addEventListener("change", async () => {
+        const f = fileInput.files && fileInput.files[0];
+        if (!f) return;
+        try {
+          const dataUrl = await resizeImageToDataUrl(f, 480, 0.72);
+          updateHuerto(p.id, { foto: dataUrl, sample:false });
+        } catch(e) { /* ignore unreadable file */ }
+      });
+      fileLabel.appendChild(fileInput);
+
+      const delBtn = document.createElement("button");
+      delBtn.className = "icon danger-step";
+      delBtn.textContent = "Eliminar";
+      delBtn.disabled = !canWrite;
+      let armed = false;
+      delBtn.addEventListener("click", () => {
+        if (!armed){
+          armed = true; delBtn.classList.add("armed"); delBtn.textContent = "Confirmar";
+          setTimeout(() => { armed=false; delBtn.classList.remove("armed"); delBtn.textContent="Eliminar"; }, 3000);
+        } else { deleteHuerto(p.id); }
+      });
+
+      actionsRow.append(fileLabel, delBtn);
+      card.appendChild(actionsRow);
+
+      huertoGrid.appendChild(card);
+    });
+  }
+
+  function renderHuertoAddForm(){
+    huertoAddCard.innerHTML = "";
+    const head = document.createElement("div");
+    head.className = "section-head";
+    head.innerHTML = "<h2>Agregar flor o planta</h2>";
+    huertoAddCard.appendChild(head);
+
+    const grid = document.createElement("div");
+    grid.className = "add-plant-grid";
+
+    let pendingPhoto = null;
+    const photoPreview = document.createElement("div");
+    photoPreview.className = "plant-photo-placeholder";
+    photoPreview.style.width = "140px";
+    photoPreview.textContent = "Sin foto";
+
+    const fileLabel = document.createElement("label");
+    fileLabel.className = "file-btn";
+    fileLabel.textContent = "📷 Elegir foto";
+    fileLabel.style.display = "block";
+    fileLabel.style.marginTop = "6px";
+    const fileInput = document.createElement("input");
+    fileInput.type = "file"; fileInput.accept = "image/*"; fileInput.style.display = "none";
+    fileInput.addEventListener("change", async () => {
+      const f = fileInput.files && fileInput.files[0];
+      if (!f) return;
+      try {
+        pendingPhoto = await resizeImageToDataUrl(f, 480, 0.72);
+        photoPreview.innerHTML = "";
+        const img = document.createElement("img");
+        img.className = "plant-photo";
+        img.style.width = "140px";
+        img.src = pendingPhoto;
+        photoPreview.appendChild(img);
+        photoPreview.className = "";
+      } catch(e) {}
+    });
+    fileLabel.appendChild(fileInput);
+
+    const photoCol = document.createElement("div");
+    photoCol.append(photoPreview, fileLabel);
+
+    const formCol = document.createElement("div");
+    const nameInput = document.createElement("input");
+    nameInput.placeholder = "Nombre de la flor o planta";
+    nameInput.style.marginBottom = "6px";
+    const descInput = document.createElement("textarea");
+    descInput.placeholder = "Descripción (científica / culinaria)";
+    descInput.style.marginBottom = "6px";
+    const metaRow = document.createElement("div");
+    metaRow.className = "plant-meta-row";
+    metaRow.style.marginBottom = "8px";
+    const pisoInput = document.createElement("input");
+    pisoInput.type = "number"; pisoInput.min = "1"; pisoInput.max = "7"; pisoInput.placeholder = "Piso (1-7)";
+    const materoInput = document.createElement("input");
+    materoInput.placeholder = "Matero / código QR";
+    metaRow.append(pisoInput, materoInput);
+
+    const addBtn = document.createElement("button");
+    addBtn.className = "primary";
+    addBtn.textContent = "Agregar al huerto";
+    addBtn.disabled = !canWrite;
+    addBtn.addEventListener("click", async () => {
+      if (!canWrite) return;
+      const nombre = nameInput.value.trim();
+      if (!nombre) return;
+      try {
+        await db.collection("huerto").add({
+          nombre, descripcion: descInput.value.trim(),
+          piso: parseInt(pisoInput.value) || null,
+          matero: materoInput.value.trim(),
+          foto: pendingPhoto || null,
+          sample: false,
+        });
+        nameInput.value = ""; descInput.value = ""; pisoInput.value = ""; materoInput.value = "";
+        pendingPhoto = null;
+        photoPreview.innerHTML = "Sin foto";
+        photoPreview.className = "plant-photo-placeholder";
+        photoPreview.style.width = "140px";
+      } catch(e){ handleWriteError(e); }
+    });
+
+    formCol.append(nameInput, descInput, metaRow, addBtn);
+    grid.append(photoCol, formCol);
+    huertoAddCard.appendChild(grid);
+  }
+
+  async function seedHuertoIfEmpty(){
+    const snap = await db.collection("huerto").limit(1).get();
+    if (!snap.empty) return;
+    const seedPlants = [
+      { nombre:"Capuchina (flor comestible)", descripcion:"Flor de sabor picante, usada como garnish en platos salados.", piso:1, matero:"P1-M03", foto:null, sample:true },
+      { nombre:"Romero", descripcion:"Hierba aromática, usada en panadería y marinados.", piso:2, matero:"P2-M01", foto:null, sample:true },
+      { nombre:"Begonia (hoja comestible)", descripcion:"Hoja de sabor cítrico, usada como garnish en postres.", piso:3, matero:"P3-M05", foto:null, sample:true },
+    ];
+    for (const p of seedPlants) await db.collection("huerto").add(p);
+  }
+
+  // ================= Resumen + Clientes metrics (computed) =================
+  function recomputeMetrics(){
+    const pedidos = (crudTables.pedidos && crudTables.pedidos.rows) || [];
+    const clientes = (crudTables.clientes && crudTables.clientes.rows) || [];
+    const reservas = (crudTables.reservas && crudTables.reservas.rows) || [];
+    const acct = (crudTables.contabilidad && crudTables.contabilidad.rows) || [];
+
+    // Resumen KPIs
+    const ingresos = acct.filter(r => r.tipo === "Ingreso").reduce((s,r) => s + (r.monto||0), 0);
+    const abiertos = pedidos.filter(p => p.estado !== "Pagado").length;
+    const topProductoCount = {};
+    pedidos.forEach(p => { if (p.producto) topProductoCount[p.producto] = (topProductoCount[p.producto]||0) + 1; });
+    let topProducto = "—", topN = 0;
+    Object.entries(topProductoCount).forEach(([k,v]) => { if (v > topN) { topN = v; topProducto = k; } });
+
+    const resumenKpis = $("#resumenKpis");
+    if (resumenKpis) resumenKpis.innerHTML =
+      '<div class="card kpi"><div class="label">Ingresos registrados</div><div class="value">$'+fmt(ingresos)+'</div><div class="delta">según Contabilidad</div></div>'+
+      '<div class="card kpi"><div class="label">Pedidos abiertos</div><div class="value">'+abiertos+'</div><div class="delta">de '+pedidos.length+' pedidos totales</div></div>'+
+      '<div class="card kpi"><div class="label">Reservas</div><div class="value">'+reservas.length+'</div><div class="delta">cursos y asesorías</div></div>'+
+      '<div class="card kpi"><div class="label">Producto más vendido</div><div class="value" style="font-size:1rem; font-family:var(--font-body); font-weight:700;">'+esc(topProducto)+'</div></div>';
+
+    const resumenPedidosEl = $("#resumenPedidos");
+    if (resumenPedidosEl){
+      resumenPedidosEl.innerHTML = "";
+      pedidos.slice(0,5).forEach(p => {
+        const row = document.createElement("div");
+        row.className = "list-row";
+        row.innerHTML = '<div><div class="who">'+esc(p.cliente||"—")+'</div><div class="meta">'+esc(p.producto||"")+' · '+esc(p.estado||"")+'</div></div><div class="mono">$'+fmt(p.monto||0)+'</div>';
+        resumenPedidosEl.appendChild(row);
+      });
+      if (!pedidos.length) resumenPedidosEl.innerHTML = '<p class="empty-note">Todavía no hay pedidos.</p>';
+    }
+
+    // Clientes KPIs
+    const productoPreguntadoCount = {};
+    clientes.forEach(c => { if (c.producto) productoPreguntadoCount[c.producto] = (productoPreguntadoCount[c.producto]||0) + 1; });
+    let topPreguntado = "—", topPN = 0;
+    Object.entries(productoPreguntadoCount).forEach(([k,v]) => { if (v > topPN) { topPN = v; topPreguntado = k; } });
+    const ticketProm = pedidos.length ? pedidos.reduce((s,p) => s + (p.monto||0), 0) / pedidos.length : 0;
+
+    const clientesKpis = $("#clientesKpis");
+    if (clientesKpis) clientesKpis.innerHTML =
+      '<div class="card kpi"><div class="label">Producto más preguntado</div><div class="value" style="font-size:1rem; font-family:var(--font-body); font-weight:700;">'+esc(topPreguntado)+'</div></div>'+
+      '<div class="card kpi"><div class="label">Producto más vendido</div><div class="value" style="font-size:1rem; font-family:var(--font-body); font-weight:700;">'+esc(topProducto)+'</div></div>'+
+      '<div class="card kpi"><div class="label">Ticket promedio</div><div class="value">$'+fmt(ticketProm)+'</div></div>';
+  }
+
+  // ================= Recetas y costeo (bespoke, with cost math) =================
+  let ingredients = [];
+  let recipes = [];
+  const ingredientsBody = $("#ingredientsBody");
+  const ingCount = $("#ingCount");
+  const recipesList = $("#recipesList");
+
+  function ingredientById(id){ return ingredients.find(i => i.id === id); }
+
+  function renderIngredients(){
+    if (ingredients.length){ ingCount.style.display="inline-block"; ingCount.textContent = ingredients.length+" insumos"; }
+    else { ingCount.style.display="none"; }
+    ingredientsBody.innerHTML = "";
+    if (!ingredients.length){
+      const tr = document.createElement("tr");
+      tr.innerHTML = '<td colspan="4" class="empty-note">Todavía no hay insumos. Agrega el primero abajo.</td>';
+      ingredientsBody.appendChild(tr);
+      return;
+    }
+    ingredients.forEach(ing => {
+      const tr = document.createElement("tr");
+      tr.className = "ing-row";
+
+      const nameTd = document.createElement("td");
+      const nameInput = document.createElement("input");
+      nameInput.className = "name";
+      nameInput.value = ing.name;
+      nameInput.disabled = !canWrite;
+      nameInput.addEventListener("change", () => updateIngredient(ing.id, { name: nameInput.value }));
+      nameTd.appendChild(nameInput);
+      if (ing.sample){
+        const tag = document.createElement("span");
+        tag.className = "pill sample"; tag.style.marginLeft = "6px"; tag.textContent = "Ejemplo";
+        nameTd.appendChild(tag);
+      }
+
+      const unitTd = document.createElement("td");
+      unitTd.className = "num";
+      const unitSelect = document.createElement("select");
+      ["g","kg","ml","unidad"].forEach(u => {
+        const opt = document.createElement("option");
+        opt.value = u; opt.textContent = u;
+        if (u === ing.unit) opt.selected = true;
+        unitSelect.appendChild(opt);
+      });
+      unitSelect.disabled = !canWrite;
+      unitSelect.addEventListener("change", () => updateIngredient(ing.id, { unit: unitSelect.value }));
+      unitTd.appendChild(unitSelect);
+
+      const costTd = document.createElement("td");
+      costTd.className = "num";
+      const costInput = document.createElement("input");
+      costInput.className = "mono"; costInput.type = "number"; costInput.step = "0.001";
+      costInput.value = ing.costPerUnit;
+      costInput.disabled = !canWrite;
+      costInput.addEventListener("change", () => {
+        const val = parseFloat(costInput.value) || 0;
+        updateIngredient(ing.id, { costPerUnit: val, sample: false });
+      });
+      costTd.appendChild(costInput);
+
+      const delTd = document.createElement("td");
+      const delBtn = document.createElement("button");
+      delBtn.className = "icon danger-step";
+      delBtn.textContent = "Eliminar";
+      delBtn.disabled = !canWrite;
+      let armed = false;
+      delBtn.addEventListener("click", () => {
+        if (!armed){
+          armed = true; delBtn.classList.add("armed"); delBtn.textContent = "Confirmar";
+          setTimeout(() => { armed=false; delBtn.classList.remove("armed"); delBtn.textContent="Eliminar"; }, 3000);
+        } else { deleteIngredient(ing.id); }
+      });
+      delTd.appendChild(delBtn);
+
+      tr.append(nameTd, unitTd, costTd, delTd);
+      ingredientsBody.appendChild(tr);
+    });
+  }
+
+  function computeRecipe(recipe){
+    let total = 0;
+    (recipe.items||[]).forEach(it => {
+      const ing = ingredientById(it.ingredientId);
+      if (ing) total += (ing.costPerUnit||0) * (it.qty||0);
+    });
+    const yieldUnits = recipe.yieldUnits > 0 ? recipe.yieldUnits : 1;
+    const perUnit = total / yieldUnits;
+    const margin = recipe.marginPercent || 0;
+    const price = perUnit * (1 + margin/100);
+    return { total, perUnit, price };
+  }
+
+  function renderRecipes(){
+    recipesList.innerHTML = "";
+    if (!recipes.length){
+      recipesList.innerHTML = '<p class="empty-note">Todavía no hay recetas. Crea la primera con “+ Nueva receta”.</p>';
+      return;
+    }
+    recipes.forEach(recipe => {
+      const card = document.createElement("div");
+      card.className = "recipe-card";
+
+      const top = document.createElement("div");
+      top.className = "recipe-top";
+
+      const left = document.createElement("div");
+      left.style.flex = "1"; left.style.minWidth = "180px";
+      const nameInput = document.createElement("input");
+      nameInput.className = "recipe-name-field";
+      nameInput.value = recipe.name;
+      nameInput.disabled = !canWrite;
+      nameInput.addEventListener("change", () => updateRecipe(recipe.id, { name: nameInput.value }));
+      left.appendChild(nameInput);
+      if (recipe.sample){
+        const tag = document.createElement("span");
+        tag.className = "pill sample"; tag.style.marginLeft = "6px"; tag.textContent = "Ejemplo";
+        left.appendChild(tag);
+      }
+
+      const meta = document.createElement("div");
+      meta.className = "recipe-meta";
+
+      const yieldField = document.createElement("div");
+      yieldField.className = "field-sm";
+      yieldField.innerHTML = "<label>Rinde (unidades)</label>";
+      const yieldInput = document.createElement("input");
+      yieldInput.type = "number"; yieldInput.min = "1"; yieldInput.value = recipe.yieldUnits || 1;
+      yieldInput.disabled = !canWrite;
+      yieldInput.addEventListener("change", () => updateRecipe(recipe.id, { yieldUnits: parseFloat(yieldInput.value)||1 }));
+      yieldField.appendChild(yieldInput);
+
+      const marginField = document.createElement("div");
+      marginField.className = "field-sm";
+      marginField.innerHTML = "<label>Margen %</label>";
+      const marginInput = document.createElement("input");
+      marginInput.type = "number"; marginInput.min = "0"; marginInput.value = recipe.marginPercent || 0;
+      marginInput.disabled = !canWrite;
+      marginInput.addEventListener("change", () => updateRecipe(recipe.id, { marginPercent: parseFloat(marginInput.value)||0 }));
+      marginField.appendChild(marginInput);
+
+      meta.append(yieldField, marginField);
+      left.appendChild(meta);
+      top.appendChild(left);
+
+      const delBtnWrap = document.createElement("div");
+      const delBtn = document.createElement("button");
+      delBtn.className = "icon danger-step";
+      delBtn.textContent = "Eliminar receta";
+      delBtn.disabled = !canWrite;
+      let armed = false;
+      delBtn.addEventListener("click", () => {
+        if (!armed){
+          armed = true; delBtn.classList.add("armed"); delBtn.textContent = "Confirmar";
+          setTimeout(() => { armed=false; delBtn.classList.remove("armed"); delBtn.textContent="Eliminar receta"; }, 3000);
+        } else { deleteRecipe(recipe.id); }
+      });
+      delBtnWrap.appendChild(delBtn);
+      top.appendChild(delBtnWrap);
+
+      card.appendChild(top);
+
+      const itemsTable = document.createElement("table");
+      itemsTable.innerHTML = '<thead><tr><th>Insumo</th><th class="num">Cantidad</th><th></th></tr></thead>';
+      const tbody = document.createElement("tbody");
+
+      (recipe.items||[]).forEach((it, idx) => {
+        const tr = document.createElement("tr");
+        const ingTd = document.createElement("td");
+        const sel = document.createElement("select");
+        const noneOpt = document.createElement("option");
+        noneOpt.value = ""; noneOpt.textContent = "— elegir insumo —";
+        sel.appendChild(noneOpt);
+        ingredients.forEach(ing => {
+          const opt = document.createElement("option");
+          opt.value = ing.id;
+          opt.textContent = ing.name + " (" + ing.unit + ")";
+          if (ing.id === it.ingredientId) opt.selected = true;
+          sel.appendChild(opt);
+        });
+        sel.disabled = !canWrite;
+        sel.addEventListener("change", () => {
+          const newItems = (recipe.items||[]).slice();
+          newItems[idx] = { ...newItems[idx], ingredientId: sel.value };
+          updateRecipe(recipe.id, { items: newItems });
+        });
+        ingTd.appendChild(sel);
+
+        const qtyTd = document.createElement("td");
+        qtyTd.className = "num";
+        const qtyInput = document.createElement("input");
+        qtyInput.type = "number"; qtyInput.className = "mono"; qtyInput.step = "0.01";
+        qtyInput.value = it.qty || 0;
+        qtyInput.disabled = !canWrite;
+        qtyInput.addEventListener("change", () => {
+          const newItems = (recipe.items||[]).slice();
+          newItems[idx] = { ...newItems[idx], qty: parseFloat(qtyInput.value)||0 };
+          updateRecipe(recipe.id, { items: newItems });
+        });
+        qtyTd.appendChild(qtyInput);
+
+        const rmTd = document.createElement("td");
+        const rmBtn = document.createElement("button");
+        rmBtn.className = "icon ghost";
+        rmBtn.textContent = "×";
+        rmBtn.disabled = !canWrite;
+        rmBtn.addEventListener("click", () => {
+          const newItems = (recipe.items||[]).slice();
+          newItems.splice(idx, 1);
+          updateRecipe(recipe.id, { items: newItems });
+        });
+        rmTd.appendChild(rmBtn);
+
+        tr.append(ingTd, qtyTd, rmTd);
+        tbody.appendChild(tr);
+      });
+      itemsTable.appendChild(tbody);
+      card.appendChild(itemsTable);
+
+      const addLineBtn = document.createElement("button");
+      addLineBtn.className = "ghost icon";
+      addLineBtn.style.marginTop = "8px";
+      addLineBtn.textContent = "+ Agregar insumo a la receta";
+      addLineBtn.disabled = !canWrite || !ingredients.length;
+      addLineBtn.addEventListener("click", () => {
+        const newItems = (recipe.items||[]).slice();
+        newItems.push({ ingredientId: ingredients[0] ? ingredients[0].id : "", qty: 0 });
+        updateRecipe(recipe.id, { items: newItems });
+      });
+      card.appendChild(addLineBtn);
+
+      const { total, perUnit, price } = computeRecipe(recipe);
+      const summary = document.createElement("div");
+      summary.className = "cost-summary";
+      summary.innerHTML =
+        '<div class="stat"><div class="label">Costo total</div><div class="value">$'+fmt(total)+'</div></div>'+
+        '<div class="stat"><div class="label">Costo / unidad</div><div class="value">$'+fmt(perUnit)+'</div></div>'+
+        '<div class="stat"><div class="label">Precio sugerido</div><div class="value price">$'+fmt(price)+'</div></div>';
+      card.appendChild(summary);
+
+      recipesList.appendChild(card);
+    });
+  }
+
+  async function updateIngredient(id, patch){ if(!canWrite) return; try{ await db.collection("ingredients").doc(id).update(patch); } catch(e){ handleWriteError(e); } }
+  async function deleteIngredient(id){ if(!canWrite) return; try{ await db.collection("ingredients").doc(id).delete(); } catch(e){ handleWriteError(e); } }
+  async function updateRecipe(id, patch){ if(!canWrite) return; try{ await db.collection("recipes").doc(id).update(patch); } catch(e){ handleWriteError(e); } }
+  async function deleteRecipe(id){ if(!canWrite) return; try{ await db.collection("recipes").doc(id).delete(); } catch(e){ handleWriteError(e); } }
+
+  async function addIngredient(){
+    if(!canWrite) return;
+    const name = $("#newIngName").value.trim();
+    const unit = $("#newIngUnit").value;
+    const cost = parseFloat($("#newIngCost").value) || 0;
+    if (!name) return;
+    try{
+      await db.collection("ingredients").add({ name, unit, costPerUnit: cost, sample: false });
+      $("#newIngName").value = ""; $("#newIngCost").value = "";
+    } catch(e){ handleWriteError(e); }
+  }
+  async function addRecipe(){
+    if(!canWrite) return;
+    try{ await db.collection("recipes").add({ name:"Nueva receta", yieldUnits:1, marginPercent:40, items:[], sample:false }); }
+    catch(e){ handleWriteError(e); }
+  }
+
+  async function seedRecipesIfEmpty(){
+    const ingSnap = await db.collection("ingredients").limit(1).get();
+    if (!ingSnap.empty) return;
+    const seedIngredients = [
+      { name:"Harina de almendra", unit:"g", costPerUnit:0.012, sample:true },
+      { name:"Dátiles", unit:"g", costPerUnit:0.009, sample:true },
+      { name:"Miel de meliponinas", unit:"ml", costPerUnit:0.08, sample:true },
+      { name:"Nueces", unit:"g", costPerUnit:0.015, sample:true },
+      { name:"Frascos mini degustación", unit:"unidad", costPerUnit:0.35, sample:true },
+      { name:"Garbanzo", unit:"g", costPerUnit:0.004, sample:true },
+    ];
+    const ids = [];
+    for (const ing of seedIngredients){ const ref = await db.collection("ingredients").add(ing); ids.push(ref.id); }
+    await db.collection("recipes").add({
+      name: "Ponqué de dátiles y nueces (libre de gluten)", yieldUnits: 8, marginPercent: 45, sample: true,
+      items: [ { ingredientId: ids[0], qty: 250 }, { ingredientId: ids[1], qty: 150 }, { ingredientId: ids[3], qty: 100 } ],
+    });
+    await db.collection("recipes").add({
+      name: "Mermelada mini degustación", yieldUnits: 12, marginPercent: 55, sample: true,
+      items: [ { ingredientId: ids[2], qty: 240 }, { ingredientId: ids[4], qty: 12 } ],
+    });
+    await db.collection("recipes").add({
+      name: "Hummus (tarro mediano)", yieldUnits: 6, marginPercent: 50, sample: true,
+      items: [ { ingredientId: ids[5], qty: 300 } ],
+    });
+  }
+
+  // ================= bootstrap =================
+  async function init(){
+    renderIngredients(); renderRecipes(); renderHuerto();
+
+    if (!window.claude || !window.claude.use){
+      showBanner("Este dashboard necesita abrirse dentro de claude.ai para guardar los datos.");
+      return;
+    }
+    db = await window.claude.use("db");
+    if (!db){
+      showBanner("No se pudo conectar el almacenamiento. Abre este dashboard desde claude.ai para editar los datos.");
+      return;
+    }
+
+    db.collection("ingredients").onSnapshot((snap) => {
+      ingredients = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderIngredients(); renderRecipes();
+    }, (err) => { if (err.code === "invalid_argument") return; });
+    db.collection("recipes").onSnapshot((snap) => {
+      recipes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderRecipes();
+    });
+    seedRecipesIfEmpty().catch(() => {});
+    $("#addIngBtn").addEventListener("click", addIngredient);
+    $("#addRecipeBtn").addEventListener("click", addRecipe);
+
+    db.collection("huerto").onSnapshot((snap) => {
+      huertoRows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderHuerto();
+    }, (err) => { if (err.code === "invalid_argument") return; });
+    seedHuertoIfEmpty().catch(() => {});
+    renderHuertoAddForm();
+
+    pedidosCrud.mount($("#pedidosPanel"));
+    clientesCrud.mount($("#clientesPanel"));
+    catalogoCrud.mount($("#catalogoTable"));
+    cursosCrud.mount($("#cursosPanel"));
+    eventosCrud.mount($("#calendarioPanel"));
+    contabilidadCrud.mount($("#contabilidadPanel"));
+    pendientesCrud.mount($("#pendientesPanel"));
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
